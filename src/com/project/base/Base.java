@@ -1,10 +1,6 @@
 package com.project.base;
 
 import com.project.simulation.Simulator;
-import com.project.visual.SimulatorDisplay;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class Base {
 

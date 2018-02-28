@@ -3,10 +3,7 @@ package com.project.simulation;
 import com.project.visual.SimulatorDisplay;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 
 public class Simulator implements  Runnable {
 
@@ -15,8 +12,7 @@ public class Simulator implements  Runnable {
     private SimulatorDisplay display;
 
     private Vehicle vehicle;
-    private Shape[] obstacles;
-    private Ellipse2D.Double vehicleShape;
+    private Line[] obstacles;
 
     public Simulator(boolean visuals) {
         this.visuals = visuals;
@@ -27,12 +23,13 @@ public class Simulator implements  Runnable {
             sensorLocations[i] = i * (Math.PI * 2) / sensors;
         }
 
-        this.vehicle = new Vehicle(5, 5, 0.2, sensors);
-        this.vehicleShape = new Ellipse2D.Double(4.8,4.8,0.4, 0.4);
-        this.obstacles = new Shape[]{new Line2D.Double(0, 0, 15, 0), //top
-                                    new Line2D.Double(0, 0, 0, 15), //left
-                                    new Line2D.Double(15, 0, 15, 15), //right
-                                    new Line2D.Double(0, 15, 15, 15)}; //bottom
+        System.out.println(Arrays.toString(sensorLocations));
+
+        this.vehicle = new Vehicle(5, 5, 0.2, 0.5, sensorLocations);
+        this.obstacles = new Line[]{new Line(0, 0, 15, 0), //top
+                                    new Line(0, 0, 0, 15), //left
+                                    new Line(15, 0, 15, 15), //right
+                                    new Line(0, 15, 15, 15)}; //bottom
         this.display = new SimulatorDisplay(this);
 
         JFrame frame = new JFrame();
@@ -84,21 +81,19 @@ public class Simulator implements  Runnable {
             newTheta %= Math.PI * 2;
         }
 
-        this.vehicleShape.setFrame(newX - vehicle.r, newY - vehicle.r, vehicle.r * 2, vehicle.r * 2);
-
         boolean collided = false;
-        for (Shape shape : this.obstacles)
-            if (shape.intersects(vehicleShape.getBounds2D())) {
+        for (Line obstacle : this.obstacles) {
+            if (obstacle.intersects(this.vehicle)) {
                 collided = true;
-                System.out.println(" fucking shit kut hoere zooi");
                 break;
             }
+        }
 
         if (collided) this.running = false;
         else {
-            vehicle.x = newX;
-            vehicle.y = newY;
-            vehicle.theta = newTheta;
+            this.vehicle.x = newX;
+            this.vehicle.y = newY;
+            this.vehicle.theta = newTheta;
         }
     }
 
@@ -114,7 +109,7 @@ public class Simulator implements  Runnable {
         return this.vehicle;
     }
 
-    public Shape[] getObstacles() {
+    public Line[] getObstacles() {
         return this.obstacles;
     }
 }
