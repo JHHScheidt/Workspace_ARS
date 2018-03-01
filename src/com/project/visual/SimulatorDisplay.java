@@ -28,17 +28,19 @@ public class SimulatorDisplay extends JPanel {
 
         // vehicle rendering
         Vehicle vehicle = this.simulator.getVehicle();
-
         g2.drawOval((int) ((vehicle.x - vehicle.r) * this.scale) + this.xOffset, (int) ((vehicle.y - vehicle.r) * this.scale) + this.yOffset, (int) (vehicle.r * 2 * this.scale), (int) (vehicle.r * 2 * this.scale));
-        g2.drawLine((int) (vehicle.x * this.scale) + this.xOffset, (int) (vehicle.y * this.scale) + this.yOffset, (int) ((vehicle.x + vehicle.r * Math.cos(vehicle.theta)) * this.scale) + this.xOffset, (int) ((vehicle.y + vehicle.r * Math.sin(vehicle.theta)) * this.scale) + this.yOffset);
-        for (double sensorAngle : vehicle.sensorLocations) {
-            double startX = (vehicle.x + Math.cos(sensorAngle) * vehicle.r);
-            double startY = (vehicle.y + Math.sin(sensorAngle) * vehicle.r);
-            g2.drawLine((int) (startX * this.scale + this.xOffset),
-                    (int) (startY * this.scale + this.yOffset),
-                    (int) ((startX + Math.cos(sensorAngle) * vehicle.sensorRange) * this.scale + this.xOffset),
-                    (int) ((startY + Math.sin(sensorAngle) * vehicle.sensorRange) * this.scale + this.yOffset));
+
+        // vehicle sensor rendering
+        for (Line line : vehicle.sensors) {
+            g2.drawLine((int) (line.x1 * this.scale + this.xOffset), (int) (line.y1 * this.scale + this.yOffset), (int) (line.x2 * this.scale + this.xOffset), (int) (line.y2 * this.scale + this.yOffset));
         }
+
+        // vehicle direction rencering
+        g2.setStroke(new BasicStroke(4));
+        g2.setColor(Color.RED);
+        g2.drawLine((int) (vehicle.x * this.scale) + this.xOffset, (int) (vehicle.y * this.scale) + this.yOffset, (int) ((vehicle.x + vehicle.r * Math.cos(vehicle.theta)) * this.scale) + this.xOffset, (int) ((vehicle.y + vehicle.r * Math.sin(vehicle.theta)) * this.scale) + this.yOffset);
+        g2.setColor(Color.BLACK);
+        g2.setStroke(new BasicStroke(1));
 
         // obstacle rendering
         for (Line obstacle : this.simulator.getObstacles()) {

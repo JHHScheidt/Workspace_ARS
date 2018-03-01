@@ -23,8 +23,6 @@ public class Simulator implements  Runnable {
             sensorLocations[i] = i * (Math.PI * 2) / sensors;
         }
 
-        System.out.println(Arrays.toString(sensorLocations));
-
         this.vehicle = new Vehicle(5, 5, 0.2, 0.5, sensorLocations);
         this.obstacles = new Line[]{new Line(0, 0, 15, 0), //top
                                     new Line(0, 0, 0, 15), //left
@@ -51,10 +49,10 @@ public class Simulator implements  Runnable {
 
             if (current - start > 1000 / FPS) {
                 if (this.visuals) this.display.repaint();
+                update(0.00166666);
                 start = current;
             }
 
-            update(0.000001);
         }
     }
 
@@ -80,6 +78,23 @@ public class Simulator implements  Runnable {
             newTheta = vehicle.theta + omega * delta;
             newTheta %= Math.PI * 2;
         }
+
+        this.vehicle.updateSensors();
+
+        double minDistanceFound;
+        double maxDistancePossible = Math.pow(this.vehicle.sensorRange + vehicle.r, 2);
+        for (Sensor sensor : this.vehicle.sensors) {
+            minDistanceFound = maxDistancePossible;
+            for (Line obstacle : this.obstacles) {
+                if (sensor.intersects(obstacle)) {
+                    minDistanceFound = Math.pow(sensor.x1 - sensor.xIntersect, 2) + Math.pow(sensor.y1 - sensor.yIntersect, 2);
+                }
+            }
+            sensor.value = minDistanceFound / maxDistancePossible;
+
+            System.out.print(sensor.value + " ");
+        }
+        System.out.println();
 
         boolean collided = false;
         for (Line obstacle : this.obstacles) {
