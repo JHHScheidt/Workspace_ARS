@@ -7,10 +7,10 @@ import java.util.List;
 
 public class Line {
 
-	public double xIntersect, yIntersect;
+	public double xIntersect, yIntersect; // The intersection is put into these variables if it exists
 
-	public double x1, x2;
-	public double y1, y2;
+	public double x1, x2; // x-coordinates of the line
+	public double y1, y2; // y-coordinates of the line
 
 	public Line(double x1, double y1, double x2, double y2) {
 		this.x1 = x1;
@@ -18,7 +18,7 @@ public class Line {
 		this.y1 = y1;
 		this.y2 = y2;
 	}
-
+	
 	public boolean intersects(Line other) {
 		double s1_x, s1_y, s2_x, s2_y;
 		s1_x = this.x2 - this.x1;
@@ -29,7 +29,7 @@ public class Line {
 		double s, t;
 		s = (-s1_y * (this.x1 - other.x1) + s1_x * (this.y1 - other.y1)) / (-s2_x * s1_y + s1_x * s2_y);
 		t = (s2_x * (this.y1 - other.y1) - s2_y * (this.x1 - other.x1)) / (-s2_x * s1_y + s1_x * s2_y);
-		if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+		if (s >= 0 && s <= 1 && t >= 0 && t <= 1) { //check if the intersection exists and is within the line segment
 			// Collision detected
 			this.xIntersect = this.x1 + (t * s1_x);
 			this.yIntersect = this.y1 + (t * s1_y);
