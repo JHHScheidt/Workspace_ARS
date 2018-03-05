@@ -2,15 +2,15 @@ package com.project.simulation;
 
 public class Vehicle {
 
-    public double x, y;
-    public double r;
-    public double theta;
+    public double x, y; // x, y location of the car
+    public double r; // distance between center of the car and the wheel, ie 1/2 distance between the wheels
+    public double theta; // rotation of the car
 
     public double speedLeft, speedRight; // m/s
 
-    public double[] sensorLocations;
-    public double sensorRange;
-    public Sensor[] sensors;
+    public double[] sensorLocations; // locations of sensors on the car
+    public double sensorRange; // range of the sensors
+    public Sensor[] sensors; // sensors on the car
 
     public Vehicle(double x, double y, double r, double sensorRange, double... sensorLocations) {
         this(x, y, r);
@@ -35,7 +35,7 @@ public class Vehicle {
 
     public void updateSensors() {
         double sensorAngle;
-        for (int i = 0; i < this.sensors.length; i++) {
+        for (int i = 0; i < this.sensors.length; i++) { // update locations for the sensors
             sensorAngle = this.sensorLocations[i];
             Line sensor = this.sensors[i];
             sensor.x1 = this.x;
