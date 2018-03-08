@@ -98,32 +98,32 @@ public class GeneticAlgorithm {
 
         ArrayList<Future<Double>> futures = new ArrayList<>();
         ArrayList<Simulator> tasks = new ArrayList<>();
-
-        for (this.generation = (this.generation>1?this.generation:1); this.generation < (this.generation>1?this.generation+250:250); this.generation++) {
+        int numberOfRuns = this.generation;
+        for (int i = (this.generation>1?this.generation:1); i < numberOfRuns+250; i++) {
             System.out.println("Starting generation " + this.generation);
 
             long start = System.currentTimeMillis();
 
             // evaluate
-            for (int i = 0; i < simulators.length; i++) {
-                environments[i].reset();
-                simulators[i].init(this.individuals.get(i), environments[i], 2.5, 2, 100);
-                futures.add(executorService.submit(simulators[i]));
-                tasks.add(simulators[i]);
+            for (int j = 0; j < simulators.length; j++) {
+                environments[j].reset();
+                simulators[j].init(this.individuals.get(j), environments[j], 2.5, 2, 100);
+                futures.add(executorService.submit(simulators[j]));
+                tasks.add(simulators[j]);
             }
 
             Future<Double> future;
             while (futures.size() > 0) {
-                for (int i = 0; i < futures.size(); i++) {
-                    future = futures.get(i);
+                for (int j = 0; j < futures.size(); j++) {
+                    future = futures.get(j);
 
                     if (future.isDone()) {
-                        futures.remove(i);
-                        Simulator completedSimulator = tasks.remove(i);
+                        futures.remove(j);
+                        Simulator completedSimulator = tasks.remove(j);
                         this.individuals.get(completedSimulator.id).setFitness(future.get());
                         if (this.best.getFitness() < this.individuals.get(completedSimulator.id).getFitness())
                             this.best = this.individuals.get(completedSimulator.id);
-                        System.out.println("results gathered for " + i-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
+                        System.out.println("results gathered for " + j-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
                     }
                 }
 
@@ -137,6 +137,7 @@ public class GeneticAlgorithm {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-all.txt"));
                 out.writeObject(this.individuals);
                 out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-best.txt"));
+                this.generation++;
                 out.writeObject(this.best);
             } catch (IOException e) {
                 e.printStackTrace();
