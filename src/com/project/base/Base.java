@@ -1,6 +1,8 @@
 package com.project.base;
 
+import com.project.network.NeuralNetwork;
 import com.project.simulation.Simulator;
+import com.project.simulation.VisualSimulator;
 
 public class Base {
 
@@ -20,11 +22,10 @@ public class Base {
 //        renderer.setDrawFaceOutlines(false);
 //        renderer.setColorScale(new GradientColorScale(new Range(0, 2500),
 //                Color.BLUE, Color.RED));
-
     }
 
     public static void main(String[] args) {
-        Simulator simulator = new Simulator(true);
+        VisualSimulator simulator = new VisualSimulator();
         simulator.start();
         simulator.run();
     }

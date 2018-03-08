@@ -4,45 +4,53 @@ import com.project.visual.SimulatorDisplay;
 
 import javax.swing.*;
 
-public class Simulator implements  Runnable {
+public class VisualSimulator implements  Runnable {
 
     private boolean running; // is the simulation running
+    private SimulatorDisplay display; // GUI
 
     private Vehicle vehicle; // the car
     private Line[] obstacles; // all obstacles, the walls for example are all in here
 
-    private long simulationTime;
-
-    public Simulator() {
+    public VisualSimulator() {
         int sensors = 12; // here we can change the number of sensors
         double[] sensorLocations = new double[sensors];
         for (int i = 0; i < sensors; i++) {
             sensorLocations[i] = i * (Math.PI * 2) / sensors; // space sensors equally around the car
         }
 
-        this.vehicle = new Vehicle(0, 0, 0.2, 0.5, sensorLocations);
+        this.vehicle = new Vehicle(5, 5, 0.2, 0.5, sensorLocations);
 
         this.obstacles = new Line[]{new Line(0, 0, 15, 0), //top wall
                                     new Line(0, 0, 0, 15), //left wall
                                     new Line(15, 0, 15, 15), //right wall
                                     new Line(0, 15, 15, 15)}; //bottom wall
-    }
 
-//    public void init(Individual individual, double startX, double startY, long simulationTime) {
-//        this.vehicle.x = startX;
-//        this.vehicle.y = startY;
-//
-//        this.simulationTime = simulationTime;
-//    }
+        this.display = new SimulatorDisplay(this); //setup the GUI
+
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setContentPane(display);
+        frame.pack();
+        frame.setVisible(true);
+    }
 
     @Override
     public void run() {
-        long timePassed = 0;
-        double updateInterval = 0.00166666;
+        long start = System.currentTimeMillis();
+        long current;
 
-        while (timePassed < this.simulationTime) {
-            update(updateInterval); // step size for the update
-            timePassed += updateInterval;
+        double FPS = 60; // limit gui to 60 fps
+
+        while (this.running) {
+            current = System.currentTimeMillis();
+
+            if (current - start > 1000 / FPS) {
+                this.display.repaint(); // if visuals are enabled we want to repaint
+                update(0.00366666); // step size for the update
+                start = current;
+            }
+
         }
     }
 
@@ -96,9 +104,11 @@ public class Simulator implements  Runnable {
         }
 
         if (collided) {
+//            this.running = false; // if the car collided, stop simulation
             this.vehicle.x = oldX;
             this.vehicle.y = oldY;
         }
+
         this.vehicle.theta = newTheta;
     }
 

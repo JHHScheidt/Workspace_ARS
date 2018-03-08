@@ -3,18 +3,19 @@ package com.project.visual;
 import com.project.simulation.Line;
 import com.project.simulation.Simulator;
 import com.project.simulation.Vehicle;
+import com.project.simulation.VisualSimulator;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class SimulatorDisplay extends JPanel {
 
-    private Simulator simulator;
+    private VisualSimulator simulator;
 
     private double scale = 60; // pixels to meter
     private int xOffset = 50, yOffset = 50; // pixel offset
 
-    public SimulatorDisplay(Simulator simulator) {
+    public SimulatorDisplay(VisualSimulator simulator) {
         this.simulator = simulator;
 
         this.setPreferredSize(new Dimension((int) this.scale * 15 + this.xOffset * 2, (int) (this.scale * 15 + this.yOffset * 2)));
