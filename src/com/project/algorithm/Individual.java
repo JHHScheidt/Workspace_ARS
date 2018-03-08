@@ -29,6 +29,7 @@ public class Individual implements Serializable {
     public void setRecurWeights(double[][] weights){
         this.recurrentWeights = weights;
     }
+
     public void setFitness(double fitness) {
         this.fitness = fitness;
     }
