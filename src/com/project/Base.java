@@ -1,8 +1,8 @@
-package com.project.base;
+package com.project;
 
-import com.project.network.NeuralNetwork;
-import com.project.simulation.Simulator;
-import com.project.simulation.VisualSimulator;
+import com.project.algorithm.GeneticAlgorithm;
+
+import java.util.concurrent.ExecutionException;
 
 public class Base {
 
@@ -25,8 +25,17 @@ public class Base {
     }
 
     public static void main(String[] args) {
-        VisualSimulator simulator = new VisualSimulator();
-        simulator.start();
-        simulator.run();
+//        VisualSimulator simulator = new VisualSimulator();
+//        simulator.start();
+//        simulator.run();
+
+        try {
+            GeneticAlgorithm algorithm = new GeneticAlgorithm(8, 12);
+            algorithm.start();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

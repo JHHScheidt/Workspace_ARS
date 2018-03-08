@@ -1,8 +1,14 @@
 package com.project.simulation;
 
 import com.project.algorithm.Individual;
+import com.project.simulation.entity.Vehicle;
+import com.project.simulation.entity.Sensor;
+import com.project.simulation.environment.Environment;
+import com.project.simulation.environment.Line;
 
-public class Simulator implements  Runnable {
+import java.util.concurrent.Callable;
+
+public class Simulator implements Callable<Double> {
 
     private boolean running; // is the simulation running
 
@@ -11,19 +17,17 @@ public class Simulator implements  Runnable {
 
     private long simulationTime;
 
-    public Simulator() {
+    public int id;
+
+    public Simulator(int id) {
         int sensors = 12; // here we can change the number of sensors
         double[] sensorLocations = new double[sensors];
         for (int i = 0; i < sensors; i++) {
             sensorLocations[i] = i * (Math.PI * 2) / sensors; // space sensors equally around the car
         }
 
-        this.vehicle = new Vehicle(0, 0, 0.17, 0.5, sensorLocations);
-
-//        this.obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
-//                                    new Line(0, 0, 0, 5), //left wall
-//                                    new Line(5, 0, 5, 5), //right wall
-//                                    new Line(0, 5, 5, 5)}; //bottom wall
+        this.vehicle = new Vehicle(0.5, 0.5, 0.17, 0.5, sensorLocations);
+        this.id = id;
     }
 
     public void init(Individual individual, Environment environment, double startX, double startY, long simulationTime) {
@@ -34,10 +38,9 @@ public class Simulator implements  Runnable {
         this.simulationTime = simulationTime;
     }
 
-    @Override
     public void run() {
-        long timePassed = 0;
-        double updateInterval = 0.00166666;
+        double timePassed = 0;
+        double updateInterval = 0.005;
 
         this.running = true;
 
@@ -50,7 +53,6 @@ public class Simulator implements  Runnable {
     }
 
     public void update(double delta) {
-
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
             double speed = (this.vehicle.speedLeft + this.vehicle.speedRight) / 2;
@@ -110,7 +112,14 @@ public class Simulator implements  Runnable {
         this.environment.grid[environmentX][environmentY] = true;
     }
 
-    public double getResults() {
+    public boolean isRunning() {
+        return this.running;
+    }
+
+    @Override
+    public Double call() {
+        this.run();
+
         double fitness = 0;
         for (boolean[] array : this.environment.grid) {
             for (boolean value : array) {
@@ -119,9 +128,5 @@ public class Simulator implements  Runnable {
         }
 
         return fitness;
-    }
-
-    public boolean isRunning() {
-        return this.running;
     }
 }

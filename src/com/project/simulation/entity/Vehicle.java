@@ -1,4 +1,7 @@
-package com.project.simulation;
+package com.project.simulation.entity;
+
+import com.project.simulation.entity.Sensor;
+import com.project.simulation.environment.Line;
 
 public class Vehicle {
 
@@ -32,7 +35,7 @@ public class Vehicle {
         this.r = r;
 
         this.speedLeft = 1;
-        this.speedRight = -1;
+        this.speedRight = 0.7;
     }
 
     public void updateSensors() {

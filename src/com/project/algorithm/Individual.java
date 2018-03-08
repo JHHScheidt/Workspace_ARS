@@ -6,8 +6,7 @@
 package com.project.algorithm;
 
 /**
- *
- * @author Marciano
+ * @author Marciano, Rico
  */
 public class Individual {
 

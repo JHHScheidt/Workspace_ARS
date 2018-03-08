@@ -1,8 +1,7 @@
 package com.project.visual;
 
-import com.project.simulation.Line;
-import com.project.simulation.Simulator;
-import com.project.simulation.Vehicle;
+import com.project.simulation.environment.Line;
+import com.project.simulation.entity.Vehicle;
 import com.project.simulation.VisualSimulator;
 
 import javax.swing.*;

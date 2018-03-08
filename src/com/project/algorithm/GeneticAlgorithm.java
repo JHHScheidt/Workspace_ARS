@@ -1,8 +1,16 @@
 package com.project.algorithm;
 
+import com.project.simulation.environment.Environment;
+import com.project.simulation.environment.Line;
+import com.project.simulation.Simulator;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.*;
 
+/**
+ * @author Marciano, Rico
+ */
 public class GeneticAlgorithm {
 
     private final static double mutationRate = 0.1;
@@ -27,7 +35,7 @@ public class GeneticAlgorithm {
      * @param size This number should hold true to the number of sensors on the vehicle
      */
     public void init(int numInd, int size) {
-        individuals = new ArrayList<>();
+        this.individuals = new ArrayList<>();
         for (int i = 0; i < numInd; i++) {
             double[][] tempInput = new double[size][nnOutput];
             double[][] tempRecur = new double[nnOutput][nnOutput];
@@ -41,9 +49,62 @@ public class GeneticAlgorithm {
                     tempRecur[j][k] = Math.random();
                 }
             }
-            individuals.add(new Individual(tempInput, tempRecur, 0));
+            this.individuals.add(new Individual(tempInput, tempRecur, 0));
         }
-    }
+	}
+
+    public void start() throws ExecutionException, InterruptedException {
+		Simulator[] simulators = new Simulator[this.individuals.size()];
+		Environment[] environments = new Environment[this.individuals.size()];
+
+		Line[] obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
+							new Line(0, 0, 0, 5), //left wall
+							new Line(5, 0, 5, 5), //right wall
+							new Line(0, 5, 5, 5)}; //bottom wall
+
+		for (int i = 0; i < simulators.length; i++) {
+			simulators[i] = new Simulator(i);
+			environments[i] = new Environment(5, 100, obstacles);
+		}
+
+		ExecutorService executorService = Executors.newFixedThreadPool(8);
+
+		ArrayList<Future<Double>> futures = new ArrayList<>();
+		ArrayList<Simulator> tasks = new ArrayList<>();
+
+    	long start = System.currentTimeMillis();
+
+    	// evaluate
+		for (int i = 0; i < simulators.length; i++) {
+			environments[i].reset();
+			simulators[i].init(this.individuals.get(i), environments[i], 2.5, 2.5, 100);
+			futures.add(executorService.submit(simulators[i]));
+			tasks.add(simulators[i]);
+		}
+
+		Future<Double> future;
+		while (futures.size() > 0) {
+			for (int i = 0; i < futures.size(); i++) {
+				future = futures.get(i);
+
+				if (future.isDone()) {
+					futures.remove(i);
+					Simulator completedSimulator = tasks.remove(i);
+					this.individuals.get(completedSimulator.id).setFitness(future.get());
+					System.out.println("results gathered for " + i-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
+				}
+			}
+
+			Thread.sleep(10);
+		}
+
+		System.out.println(System.currentTimeMillis() - start);
+
+		// evolvePopulation
+		this.evolvePopulation();
+
+		executorService.shutdown();
+	}
 
     /**
      * Evolves the population into a new population it may use elitism if assigned

@@ -1,4 +1,4 @@
-package com.project.simulation;
+package com.project.simulation.environment;
 
 public class Environment {
 
@@ -15,5 +15,13 @@ public class Environment {
 		this.obstacles = obstacles;
 
 		this.subdivisionSize = this.size / subdivisions;
+	}
+
+	public void reset() {
+		for (int i = 0; i < this.grid.length; i++) {
+			for (int j = 0; j < this.grid[i].length; j++) {
+				this.grid[i][j] = false;
+			}
+		}
 	}
 }

@@ -1,5 +1,8 @@
 package com.project.simulation;
 
+import com.project.simulation.entity.Sensor;
+import com.project.simulation.entity.Vehicle;
+import com.project.simulation.environment.Line;
 import com.project.visual.SimulatorDisplay;
 
 import javax.swing.*;
@@ -47,7 +50,7 @@ public class VisualSimulator implements  Runnable {
 
             if (current - start > 1000 / FPS) {
                 this.display.repaint(); // if visuals are enabled we want to repaint
-                update(0.00366666); // step size for the update
+                update(0.005); // step size for the update
                 start = current;
             }
 

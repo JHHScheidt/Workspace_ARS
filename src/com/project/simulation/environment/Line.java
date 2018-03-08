@@ -1,9 +1,6 @@
-package com.project.simulation;
+package com.project.simulation.environment;
 
-import java.awt.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import com.project.simulation.entity.Vehicle;
 
 public class Line {
 

@@ -1,4 +1,6 @@
-package com.project.simulation;
+package com.project.simulation.entity;
+
+import com.project.simulation.environment.Line;
 
 public class Sensor extends Line {
 

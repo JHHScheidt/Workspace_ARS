@@ -1,4 +1,4 @@
-package com.project.base;
+package com.project.utils;
 
 import com.orsoncharts.data.function.Function3D;
 
