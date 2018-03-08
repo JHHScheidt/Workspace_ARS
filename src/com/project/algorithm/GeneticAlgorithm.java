@@ -12,10 +12,20 @@ public class GeneticAlgorithm {
     private ArrayList<Individual> individuals;
     private Individual best;
 
+    /**
+     * Constructor for the GeneticAlgorithm
+     * @param numInd Number of Individuals
+     * @param size This number should hold true to the number of sensors on the vehicle
+     */
     public GeneticAlgorithm(int numInd, int size) {
         this.init(numInd, size);
     }
 
+    /**
+     * Initialise the full population randomly
+     * @param numInd Number of Individuals
+     * @param size This number should hold true to the number of sensors on the vehicle
+     */
     public void init(int numInd, int size) {
         individuals = new ArrayList<>();
         for (int i = 0; i < numInd; i++) {
@@ -35,9 +45,13 @@ public class GeneticAlgorithm {
         }
     }
 
+    /**
+     * Evolves the population into a new population it may use elitism if assigned
+     * It uses tournament selection to create a new population on this new population
+     * it will perform mutations this mutation can either be an exchange mutation or random mutation
+     */
     public void evolvePopulation() {
         ArrayList<Individual> newPopulation = new ArrayList<>();
-
         // Keep our best individual
         int elitismOffset = 0;
         if (elitism) {
@@ -66,6 +80,12 @@ public class GeneticAlgorithm {
         this.individuals = newPopulation;
     }
 
+    /**
+     * Tournament Selection, tournament size is dictated by a preset value
+     * In our base case it is set to 5. Within a random selection of 5 individuals
+     * the best is selected and returned
+     * @return Best Individual from this tournament
+     */
     public Individual tournamentSelection() {
         Individual best;
         Individual[] tournament = new Individual[tournamentSize];
@@ -81,6 +101,11 @@ public class GeneticAlgorithm {
         return tournament[bestIndex];
     }
 
+    /**
+     * Exchange Mutation which give a mutationRate will exchange 2 indices in the Individual weight
+     * @param ind The values to be taken into consideration
+     * @return 2D double array which holds the changed or unchanged ind variable
+     */
     public double[][] exchangeMutation(double[][] ind) {
         int[] index = {-1, -1};
         for(int i = 0; i < ind.length; i++){
@@ -106,6 +131,12 @@ public class GeneticAlgorithm {
         return ind;
     }
 
+    /**
+     * Checks each index and decides on a mutationRate if the value is changed
+     * The number it is changed with lies in a range of -0.5 to 0.5
+     * @param ind Double array to be mutated
+     * @return 2D double array which holds the mutated ind variable
+     */
     public double[][] randomMutation(double[][] ind) {
         for(int i = 0; i < ind.length; i++){
             for (int j = 0; j < ind[i].length; j++) {
@@ -117,6 +148,14 @@ public class GeneticAlgorithm {
         return ind;
     }
 
+    /**
+     * Makes a crossover between two pairs of 2D arrays
+     * It will always split through the middle and combine the first half of ind1 
+     * and the second hafl of ind2
+     * @param ind1 First array to be merged
+     * @param ind2 Second array to be merged
+     * @return New Array with the merged elements
+     */
     public double[][] crossover(double[][] ind1, double[][] ind2) {
         double[][] newInd = Arrays.copyOf(ind2, ind2.length);
         for(int i = 0; i < ind1.length; i++){
