@@ -1,11 +1,13 @@
 package com.project.simulation;
 
+import com.project.algorithm.Individual;
+
 public class Simulator implements  Runnable {
 
     private boolean running; // is the simulation running
 
+    private Environment environment; // the environment the vehicle is exploring
     private Vehicle vehicle; // the car
-    private Line[] obstacles; // all obstacles, the walls for example are all in here
 
     private long simulationTime;
 
@@ -18,28 +20,33 @@ public class Simulator implements  Runnable {
 
         this.vehicle = new Vehicle(0, 0, 0.17, 0.5, sensorLocations);
 
-        this.obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
-                                    new Line(0, 0, 0, 5), //left wall
-                                    new Line(5, 0, 5, 5), //right wall
-                                    new Line(0, 5, 5, 5)}; //bottom wall
+//        this.obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
+//                                    new Line(0, 0, 0, 5), //left wall
+//                                    new Line(5, 0, 5, 5), //right wall
+//                                    new Line(0, 5, 5, 5)}; //bottom wall
     }
 
-//    public void init(Individual individual, double startX, double startY, long simulationTime) {
-//        this.vehicle.x = startX;
-//        this.vehicle.y = startY;
-//
-//        this.simulationTime = simulationTime;
-//    }
+    public void init(Individual individual, Environment environment, double startX, double startY, long simulationTime) {
+        this.vehicle.x = startX;
+        this.vehicle.y = startY;
+
+        this.environment = environment;
+        this.simulationTime = simulationTime;
+    }
 
     @Override
     public void run() {
         long timePassed = 0;
         double updateInterval = 0.00166666;
 
+        this.running = true;
+
         while (timePassed < this.simulationTime) {
             update(updateInterval); // step size for the update
             timePassed += updateInterval;
         }
+
+        this.running = false;
     }
 
     public void update(double delta) {
@@ -75,7 +82,7 @@ public class Simulator implements  Runnable {
         double maxDistancePossible = Math.pow(this.vehicle.sensorRange + vehicle.r, 2);
         for (Sensor sensor : this.vehicle.sensors) {
             minDistanceFound = maxDistancePossible;
-            for (Line obstacle : this.obstacles) {
+            for (Line obstacle : this.environment.obstacles) {
                 if (sensor.intersects(obstacle)) {
                     minDistanceFound = Math.pow(sensor.x1 - sensor.xIntersect, 2) + Math.pow(sensor.y1 - sensor.yIntersect, 2);
                 }
@@ -84,7 +91,7 @@ public class Simulator implements  Runnable {
         }
 
         boolean collided = false; // check if car collided with any of the obstacles in the world
-        for (Line obstacle : this.obstacles) {
+        for (Line obstacle : this.environment.obstacles) {
             if (obstacle.intersects(this.vehicle)) {
                 collided = true;
                 break;
@@ -96,22 +103,22 @@ public class Simulator implements  Runnable {
             this.vehicle.y = oldY;
         }
         this.vehicle.theta = newTheta;
+
+        // indicate which spot of the environment has been visited
+        int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
+        int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
+        this.environment.grid[environmentX][environmentY] = true;
     }
 
-    public void start() {
-        this.running = true;
-    }
+    public double getResults() {
+        double fitness = 0;
+        for (boolean[] array : this.environment.grid) {
+            for (boolean value : array) {
+                if (value) fitness += 1;
+            }
+        }
 
-    public void stop() {
-        this.running = false;
-    }
-
-    public Vehicle getVehicle() {
-        return this.vehicle;
-    }
-
-    public Line[] getObstacles() {
-        return this.obstacles;
+        return fitness;
     }
 
     public boolean isRunning() {
