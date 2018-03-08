@@ -45,7 +45,7 @@ public class GeneticAlgorithm {
             ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
             this.individuals = (ArrayList<Individual>) in.readObject();
             this.best = this.individuals.get(0);
-            this.generation = Integer.parseInt(file.replaceAll("[^\\d.]",""));
+            this.generation = Integer.parseInt(file.replaceAll("[^0-9]",""));
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -99,7 +99,7 @@ public class GeneticAlgorithm {
         ArrayList<Future<Double>> futures = new ArrayList<>();
         ArrayList<Simulator> tasks = new ArrayList<>();
 
-        for (this.generation = 1; this.generation < 250; this.generation++) {
+        for (this.generation = (this.generation>1?this.generation:1); this.generation < (this.generation>1?this.generation+250:250); this.generation++) {
             System.out.println("Starting generation " + this.generation);
 
             long start = System.currentTimeMillis();
