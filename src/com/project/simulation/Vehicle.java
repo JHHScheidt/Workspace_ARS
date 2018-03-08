@@ -12,6 +12,8 @@ public class Vehicle {
     public double sensorRange; // range of the sensors
     public Sensor[] sensors; // sensors on the car
 
+    public double maxSpeed = 1;
+
     public Vehicle(double x, double y, double r, double sensorRange, double... sensorLocations) {
         this(x, y, r);
 
@@ -29,14 +31,14 @@ public class Vehicle {
         this.y = y;
         this.r = r;
 
-        this.speedLeft = 11;
-        this.speedRight = 10;
+        this.speedLeft = 1;
+        this.speedRight = -1;
     }
 
     public void updateSensors() {
         double sensorAngle;
         for (int i = 0; i < this.sensors.length; i++) { // update locations for the sensors
-            sensorAngle = this.sensorLocations[i];
+            sensorAngle = this.sensorLocations[i] + this.theta;
             Line sensor = this.sensors[i];
             sensor.x1 = this.x;
             sensor.x2 = this.x + Math.cos(sensorAngle) * (this.sensorRange + this.r);

@@ -19,12 +19,12 @@ public class VisualSimulator implements  Runnable {
             sensorLocations[i] = i * (Math.PI * 2) / sensors; // space sensors equally around the car
         }
 
-        this.vehicle = new Vehicle(5, 5, 0.2, 0.5, sensorLocations);
+        this.vehicle = new Vehicle(2, 2, 0.17, 0.5, sensorLocations);
 
-        this.obstacles = new Line[]{new Line(0, 0, 15, 0), //top wall
-                                    new Line(0, 0, 0, 15), //left wall
-                                    new Line(15, 0, 15, 15), //right wall
-                                    new Line(0, 15, 15, 15)}; //bottom wall
+        this.obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
+                                    new Line(0, 0, 0, 5), //left wall
+                                    new Line(5, 0, 5, 5), //right wall
+                                    new Line(0, 5, 5, 5)}; //bottom wall
 
         this.display = new SimulatorDisplay(this); //setup the GUI
 

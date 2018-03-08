@@ -12,13 +12,13 @@ public class SimulatorDisplay extends JPanel {
 
     private VisualSimulator simulator;
 
-    private double scale = 60; // pixels to meter
+    private double scale = 200; // pixels to meter
     private int xOffset = 50, yOffset = 50; // pixel offset
 
     public SimulatorDisplay(VisualSimulator simulator) {
         this.simulator = simulator;
 
-        this.setPreferredSize(new Dimension((int) this.scale * 15 + this.xOffset * 2, (int) (this.scale * 15 + this.yOffset * 2)));
+        this.setPreferredSize(new Dimension((int) this.scale * 5 + this.xOffset * 2, (int) (this.scale * 5 + this.yOffset * 2)));
     }
 
     public void paintComponent(Graphics g) {
