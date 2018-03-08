@@ -140,7 +140,7 @@ public class GeneticAlgorithm {
         ArrayList<Individual> newPopulation = new ArrayList<>();
         // Keep our best individual
         int elitismOffset = 0;
-        if (this.elitism) {
+        if (elitism) {
             newPopulation.add(this.best);
             elitismOffset = 1;
         }
@@ -174,8 +174,8 @@ public class GeneticAlgorithm {
      */
     public Individual tournamentSelection() {
         Individual best;
-        Individual[] tournament = new Individual[this.tournamentSize];
-        for (int i = 0; i < this.tournamentSize; i++) {
+        Individual[] tournament = new Individual[tournamentSize];
+        for (int i = 0; i < tournamentSize; i++) {
             tournament[i] = this.individuals.get((int) (Math.random() * this.individuals.size()));
         }
         int bestIndex = 0;
@@ -198,7 +198,7 @@ public class GeneticAlgorithm {
             index[0] = -1;
             index[1] = -1;
             for (int j = 0; j < ind[i].length; j++) {
-                if (Math.random() <= this.mutationRate) {
+                if (Math.random() <= mutationRate) {
                     if (index[0] == -1) {
                         index[0] = j;
                     } else if (index[1] == -1) {
@@ -228,7 +228,7 @@ public class GeneticAlgorithm {
     	outerLoop:
         for(int i = 0; i < ind.length; i++){
             for (int j = 0; j < ind[i].length; j++) {
-                if (Math.random() <= this.mutationRate) {
+                if (Math.random() <= mutationRate) {
                     ind[i][j] += Math.random() - 0.5;
                     if (++mutations > 5) break outerLoop;
                 }
