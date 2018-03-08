@@ -34,37 +34,37 @@ public class Base {
     }
 
     public static void main(String[] args) {
-        try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream("res/generation49-best.txt"));
-            Individual individual = (Individual) in.readObject();
-//            ArrayList<Individual> generation = (ArrayList<Individual>) in.readObject();
-
-            Line[] obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
-                    new Line(0, 0, 0, 5), //left wall
-                    new Line(1, 2.5, 4, 2.5), //left wall
-                    new Line(5, 0, 5, 5), //right wall
-                    new Line(0, 5, 5, 5)}; //bottom wall
-
-            Environment environment = new Environment(5, 100, obstacles);
-
-            VisualSimulator simulator = new VisualSimulator(environment, individual);
-//            VisualSimulator simulator = new VisualSimulator(environment, generation.get(0));
-            simulator.start();
-            simulator.run();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
 //        try {
-//            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12);
-//            algorithm.start();
-//        } catch (ExecutionException e) {
+//            ObjectInputStream in = new ObjectInputStream(new FileInputStream("res/generation49-best.txt"));
+//            Individual individual = (Individual) in.readObject();
+////            ArrayList<Individual> generation = (ArrayList<Individual>) in.readObject();
+//
+//            Line[] obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
+//                    new Line(0, 0, 0, 5), //left wall
+//                    new Line(1, 2.5, 4, 2.5), //left wall
+//                    new Line(5, 0, 5, 5), //right wall
+//                    new Line(0, 5, 5, 5)}; //bottom wall
+//
+//            Environment environment = new Environment(5, 100, obstacles);
+//
+//            VisualSimulator simulator = new VisualSimulator(environment, individual);
+////            VisualSimulator simulator = new VisualSimulator(environment, generation.get(0));
+//            simulator.start();
+//            simulator.run();
+//        } catch (IOException e) {
 //            e.printStackTrace();
-//        } catch (InterruptedException e) {
+//        } catch (ClassNotFoundException e) {
 //            e.printStackTrace();
 //        }
+
+
+        try {
+            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12);
+            algorithm.start();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

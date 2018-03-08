@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 public class GeneticAlgorithm {
 
     private final static double MUTATION_RATE = 0.1;
-    private final static int TOURNAMENT_SIZE = 5;
+    private final static int TOURNAMENT_SIZE = 10;
     private final static boolean ELITISM = true;
     private final static int NN_OUTPUT = 2;
 
@@ -51,12 +51,12 @@ public class GeneticAlgorithm {
             double[][] tempRecur = new double[NN_OUTPUT][NN_OUTPUT];
             for (int j = 0; j < tempInput.length; j++) {
                 for (int k = 0; k < tempInput[0].length; k++) {
-                    tempInput[j][k] = Math.random();
+                    tempInput[j][k] = Math.random() * 10;
                 }
             }
             for (int j = 0; j < tempRecur.length; j++) {
                 for (int k = 0; k < tempRecur.length; k++) {
-                    tempRecur[j][k] = Math.random();
+                    tempRecur[j][k] = Math.random() * 10;
                 }
             }
             this.individuals.add(new Individual(tempInput, tempRecur, 0));
@@ -86,7 +86,7 @@ public class GeneticAlgorithm {
         ArrayList<Future<Double>> futures = new ArrayList<>();
         ArrayList<Simulator> tasks = new ArrayList<>();
 
-        for (this.generation = 1; this.generation < 50; this.generation++) {
+        for (this.generation = 1; this.generation < 250; this.generation++) {
             System.out.println("Starting generation " + this.generation);
 
             long start = System.currentTimeMillis();
@@ -238,7 +238,7 @@ public class GeneticAlgorithm {
         for (int i = 0; i < ind.length; i++) {
             for (int j = 0; j < ind[i].length; j++) {
                 if (Math.random() < MUTATION_RATE) {
-                    ind[i][j] += Math.random() - 0.5;
+                    ind[i][j] += (Math.random() - 0.5) * 10;
                     if (++mutations > 5) break outerLoop;
                 }
             }

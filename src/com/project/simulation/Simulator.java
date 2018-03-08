@@ -7,6 +7,7 @@ import com.project.simulation.entity.Sensor;
 import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 public class Simulator implements Callable<Double> {
