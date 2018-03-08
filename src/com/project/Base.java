@@ -1,7 +1,16 @@
 package com.project;
 
 import com.project.algorithm.GeneticAlgorithm;
+import com.project.algorithm.Individual;
+import com.project.simulation.Simulator;
+import com.project.simulation.VisualSimulator;
+import com.project.simulation.environment.Environment;
+import com.project.simulation.environment.Line;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class Base {
@@ -25,12 +34,30 @@ public class Base {
     }
 
     public static void main(String[] args) {
-//        VisualSimulator simulator = new VisualSimulator();
-//        simulator.start();
-//        simulator.run();
+//        try {
+//            ObjectInputStream in = new ObjectInputStream(new FileInputStream("res/generation7-all.txt"));
+////            Individual individual = (Individual) in.readObject();
+//            ArrayList<Individual> generation = (ArrayList<Individual>) in.readObject();
+//
+//            Line[] obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
+//                    new Line(0, 0, 0, 5), //left wall
+//                    new Line(5, 0, 5, 5), //right wall
+//                    new Line(0, 5, 5, 5)}; //bottom wall
+//
+//            Environment environment = new Environment(5, 100, obstacles);
+//
+//            VisualSimulator simulator = new VisualSimulator(environment, generation.get(0));
+//            simulator.start();
+//            simulator.run();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
+
 
         try {
-            GeneticAlgorithm algorithm = new GeneticAlgorithm(8, 12);
+            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12);
             algorithm.start();
         } catch (ExecutionException e) {
             e.printStackTrace();

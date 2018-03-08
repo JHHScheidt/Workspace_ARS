@@ -5,10 +5,12 @@
  */
 package com.project.algorithm;
 
+import java.io.Serializable;
+
 /**
  * @author Marciano, Rico
  */
-public class Individual {
+public class Individual implements Serializable {
 
     private double[][] inputWeights;
     private double[][] recurrentWeights;

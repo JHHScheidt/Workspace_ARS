@@ -1,7 +1,8 @@
 package com.project.simulation.entity;
 
-import com.project.simulation.entity.Sensor;
 import com.project.simulation.environment.Line;
+
+import java.util.Arrays;
 
 public class Vehicle {
 
@@ -14,6 +15,7 @@ public class Vehicle {
     public double[] sensorLocations; // locations of sensors on the car
     public double sensorRange; // range of the sensors
     public Sensor[] sensors; // sensors on the car
+    public double[][] sensorValues; // 2 dimensional because of JAMA library requirements
 
     public double maxSpeed = 1;
 
@@ -26,6 +28,9 @@ public class Vehicle {
         for (int i = 0; i < this.sensors.length; i++) {
             this.sensors[i] = new Sensor(0, 0, 0, 0);
         }
+
+        this.sensorValues = new double[1][sensorLocations.length];
+
         this.updateSensors();
     }
 
@@ -33,9 +38,6 @@ public class Vehicle {
         this.x = x;
         this.y = y;
         this.r = r;
-
-        this.speedLeft = 1;
-        this.speedRight = 0.7;
     }
 
     public void updateSensors() {

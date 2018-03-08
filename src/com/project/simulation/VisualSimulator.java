@@ -1,7 +1,10 @@
 package com.project.simulation;
 
+import com.project.algorithm.Individual;
+import com.project.network.NeuralNetwork;
 import com.project.simulation.entity.Sensor;
 import com.project.simulation.entity.Vehicle;
+import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
 import com.project.visual.SimulatorDisplay;
 
@@ -12,22 +15,21 @@ public class VisualSimulator implements  Runnable {
     private boolean running; // is the simulation running
     private SimulatorDisplay display; // GUI
 
+    private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
-    private Line[] obstacles; // all obstacles, the walls for example are all in here
 
-    public VisualSimulator() {
+    private Environment environment; // the environment the vehicle is exploring
+
+    public VisualSimulator(Environment environment, Individual individual) {
         int sensors = 12; // here we can change the number of sensors
         double[] sensorLocations = new double[sensors];
         for (int i = 0; i < sensors; i++) {
             sensorLocations[i] = i * (Math.PI * 2) / sensors; // space sensors equally around the car
         }
 
+        this.environment = environment;
+        this.vehicleNetwork = new NeuralNetwork(individual.getInputWeights(), individual.getRecurWeights());
         this.vehicle = new Vehicle(2, 2, 0.17, 0.5, sensorLocations);
-
-        this.obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
-                                    new Line(0, 0, 0, 5), //left wall
-                                    new Line(5, 0, 5, 5), //right wall
-                                    new Line(0, 5, 5, 5)}; //bottom wall
 
         this.display = new SimulatorDisplay(this); //setup the GUI
 
@@ -44,6 +46,7 @@ public class VisualSimulator implements  Runnable {
         long current;
 
         double FPS = 60; // limit gui to 60 fps
+        double simulationTime = 0;
 
         while (this.running) {
             current = System.currentTimeMillis();
@@ -51,13 +54,17 @@ public class VisualSimulator implements  Runnable {
             if (current - start > 1000 / FPS) {
                 this.display.repaint(); // if visuals are enabled we want to repaint
                 update(0.005); // step size for the update
+                simulationTime += 0.005;
                 start = current;
+                System.out.println(simulationTime);
             }
-
         }
     }
 
     public void update(double delta) {
+        double[] activations = this.vehicleNetwork.compute(this.vehicle.sensorValues);
+        this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
+        this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
 
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
@@ -88,18 +95,21 @@ public class VisualSimulator implements  Runnable {
 
         double minDistanceFound;
         double maxDistancePossible = Math.pow(this.vehicle.sensorRange + vehicle.r, 2);
-        for (Sensor sensor : this.vehicle.sensors) {
+        Sensor[] sensors = this.vehicle.sensors;
+        for (int i = 0; i < sensors.length; i++) {
+            Sensor sensor = sensors[i];
             minDistanceFound = maxDistancePossible;
-            for (Line obstacle : this.obstacles) {
+            for (Line obstacle : this.environment.obstacles) {
                 if (sensor.intersects(obstacle)) {
                     minDistanceFound = Math.pow(sensor.x1 - sensor.xIntersect, 2) + Math.pow(sensor.y1 - sensor.yIntersect, 2);
                 }
             }
             sensor.value = minDistanceFound / maxDistancePossible;
+            vehicle.sensorValues[0][i] = sensor.value;
         }
 
         boolean collided = false; // check if car collided with any of the obstacles in the world
-        for (Line obstacle : this.obstacles) {
+        for (Line obstacle : this.environment.obstacles) {
             if (obstacle.intersects(this.vehicle)) {
                 collided = true;
                 break;
@@ -107,12 +117,15 @@ public class VisualSimulator implements  Runnable {
         }
 
         if (collided) {
-//            this.running = false; // if the car collided, stop simulation
             this.vehicle.x = oldX;
             this.vehicle.y = oldY;
         }
-
         this.vehicle.theta = newTheta;
+
+        // indicate which spot of the environment has been visited
+        int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
+        int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
+        this.environment.grid[environmentX][environmentY] = true;
     }
 
     public void start() {
@@ -127,11 +140,11 @@ public class VisualSimulator implements  Runnable {
         return this.vehicle;
     }
 
-    public Line[] getObstacles() {
-        return this.obstacles;
-    }
-
     public boolean isRunning() {
         return this.running;
+    }
+
+    public Environment getEnvironment() {
+        return this.environment;
     }
 }

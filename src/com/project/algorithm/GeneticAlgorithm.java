@@ -4,6 +4,9 @@ import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
 import com.project.simulation.Simulator;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.*;
@@ -19,6 +22,8 @@ public class GeneticAlgorithm {
     private final static int nnOutput = 2;
     private ArrayList<Individual> individuals;
     private Individual best;
+
+    private int generation;
 
     /**
      * Constructor for the GeneticAlgorithm
@@ -51,6 +56,9 @@ public class GeneticAlgorithm {
             }
             this.individuals.add(new Individual(tempInput, tempRecur, 0));
         }
+
+        this.generation = 1;
+        this.best = this.individuals.get(0);
 	}
 
     public void start() throws ExecutionException, InterruptedException {
@@ -72,36 +80,53 @@ public class GeneticAlgorithm {
 		ArrayList<Future<Double>> futures = new ArrayList<>();
 		ArrayList<Simulator> tasks = new ArrayList<>();
 
-    	long start = System.currentTimeMillis();
+		for (this.generation = 1; this.generation < 50; this.generation++) {
+			System.out.println("Starting generation " + this.generation);
 
-    	// evaluate
-		for (int i = 0; i < simulators.length; i++) {
-			environments[i].reset();
-			simulators[i].init(this.individuals.get(i), environments[i], 2.5, 2.5, 100);
-			futures.add(executorService.submit(simulators[i]));
-			tasks.add(simulators[i]);
-		}
+			long start = System.currentTimeMillis();
 
-		Future<Double> future;
-		while (futures.size() > 0) {
-			for (int i = 0; i < futures.size(); i++) {
-				future = futures.get(i);
-
-				if (future.isDone()) {
-					futures.remove(i);
-					Simulator completedSimulator = tasks.remove(i);
-					this.individuals.get(completedSimulator.id).setFitness(future.get());
-					System.out.println("results gathered for " + i-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
-				}
+			// evaluate
+			for (int i = 0; i < simulators.length; i++) {
+				environments[i].reset();
+				simulators[i].init(this.individuals.get(i), environments[i], 2.5, 2.5, 100);
+				futures.add(executorService.submit(simulators[i]));
+				tasks.add(simulators[i]);
 			}
 
-			Thread.sleep(10);
+			Future<Double> future;
+			while (futures.size() > 0) {
+				for (int i = 0; i < futures.size(); i++) {
+					future = futures.get(i);
+
+					if (future.isDone()) {
+						futures.remove(i);
+						Simulator completedSimulator = tasks.remove(i);
+						this.individuals.get(completedSimulator.id).setFitness(future.get());
+						if (this.best.getFitness() < this.individuals.get(completedSimulator.id).getFitness())
+							this.best = this.individuals.get(completedSimulator.id);
+						System.out.println("results gathered for " + i-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
+					}
+				}
+
+				Thread.sleep(10);
+			}
+
+			System.out.println(System.currentTimeMillis() - start);
+
+			// storing of population
+			try {
+				ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-all.txt"));
+				out.writeObject(this.individuals);
+				out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-best.txt"));
+				out.writeObject(this.best);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+
+			// evolvePopulation
+			this.evolvePopulation();
 		}
-
-		System.out.println(System.currentTimeMillis() - start);
-
-		// evolvePopulation
-		this.evolvePopulation();
 
 		executorService.shutdown();
 	}
@@ -115,8 +140,8 @@ public class GeneticAlgorithm {
         ArrayList<Individual> newPopulation = new ArrayList<>();
         // Keep our best individual
         int elitismOffset = 0;
-        if (elitism) {
-            newPopulation.add(best);
+        if (this.elitism) {
+            newPopulation.add(this.best);
             elitismOffset = 1;
         }
         // Loop over the population size and create new individuals with
@@ -149,9 +174,9 @@ public class GeneticAlgorithm {
      */
     public Individual tournamentSelection() {
         Individual best;
-        Individual[] tournament = new Individual[tournamentSize];
-        for (int i = 0; i < tournamentSize; i++) {
-            tournament[i] = this.individuals.get((int) Math.random() * this.individuals.size());
+        Individual[] tournament = new Individual[this.tournamentSize];
+        for (int i = 0; i < this.tournamentSize; i++) {
+            tournament[i] = this.individuals.get((int) (Math.random() * this.individuals.size()));
         }
         int bestIndex = 0;
         for (int i = 1; i < tournament.length; i++) {
@@ -173,7 +198,7 @@ public class GeneticAlgorithm {
             index[0] = -1;
             index[1] = -1;
             for (int j = 0; j < ind[i].length; j++) {
-                if (Math.random() <= mutationRate) {
+                if (Math.random() <= this.mutationRate) {
                     if (index[0] == -1) {
                         index[0] = j;
                     } else if (index[1] == -1) {
@@ -199,10 +224,13 @@ public class GeneticAlgorithm {
      * @return 2D double array which holds the mutated ind variable
      */
     public double[][] randomMutation(double[][] ind) {
+    	int mutations = 0;
+    	outerLoop:
         for(int i = 0; i < ind.length; i++){
             for (int j = 0; j < ind[i].length; j++) {
-                if (Math.random() <= mutationRate) {
+                if (Math.random() <= this.mutationRate) {
                     ind[i][j] += Math.random() - 0.5;
+                    if (++mutations > 5) break outerLoop;
                 }
             }
         }
@@ -211,7 +239,7 @@ public class GeneticAlgorithm {
 
     /**
      * Makes a crossover between two pairs of 2D arrays
-     * It will always split through the middle and combine the first half of ind1 
+     * It will always split through the middle and combine the first half of ind1
      * and the second hafl of ind2
      * @param ind1 First array to be merged
      * @param ind2 Second array to be merged
@@ -219,11 +247,13 @@ public class GeneticAlgorithm {
      */
     public double[][] crossover(double[][] ind1, double[][] ind2) {
         double[][] newInd = Arrays.copyOf(ind2, ind2.length);
-        for(int i = 0; i < ind1.length; i++){
+
+		for(int i = 0; i < ind1.length; i++){
             for (int j = 0; j < ind1[0].length / 2; j++) {
                 newInd[i][j] = ind1[i][j];
             }
         }
-        return newInd;
+
+		return newInd;
     }
 }

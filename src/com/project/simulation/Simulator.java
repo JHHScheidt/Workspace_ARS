@@ -1,6 +1,7 @@
 package com.project.simulation;
 
 import com.project.algorithm.Individual;
+import com.project.network.NeuralNetwork;
 import com.project.simulation.entity.Vehicle;
 import com.project.simulation.entity.Sensor;
 import com.project.simulation.environment.Environment;
@@ -13,6 +14,8 @@ public class Simulator implements Callable<Double> {
     private boolean running; // is the simulation running
 
     private Environment environment; // the environment the vehicle is exploring
+
+    private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
 
     private long simulationTime;
@@ -31,11 +34,29 @@ public class Simulator implements Callable<Double> {
     }
 
     public void init(Individual individual, Environment environment, double startX, double startY, long simulationTime) {
+        this.vehicleNetwork = new NeuralNetwork(individual.getInputWeights(), individual.getRecurWeights());
+
         this.vehicle.x = startX;
         this.vehicle.y = startY;
 
         this.environment = environment;
         this.simulationTime = simulationTime;
+
+        // sensor initialisation for first update
+        double minDistanceFound;
+        double maxDistancePossible = Math.pow(this.vehicle.sensorRange + vehicle.r, 2);
+        Sensor[] sensors = this.vehicle.sensors;
+        for (int i = 0; i < sensors.length; i++) {
+            Sensor sensor = sensors[i];
+            minDistanceFound = maxDistancePossible;
+            for (Line obstacle : this.environment.obstacles) {
+                if (sensor.intersects(obstacle)) {
+                    minDistanceFound = Math.pow(sensor.x1 - sensor.xIntersect, 2) + Math.pow(sensor.y1 - sensor.yIntersect, 2);
+                }
+            }
+            sensor.value = minDistanceFound / maxDistancePossible;
+            vehicle.sensorValues[0][i] = sensor.value;
+        }
     }
 
     public void run() {
@@ -53,6 +74,10 @@ public class Simulator implements Callable<Double> {
     }
 
     public void update(double delta) {
+        double[] activations = this.vehicleNetwork.compute(this.vehicle.sensorValues);
+        this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
+        this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
+
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
             double speed = (this.vehicle.speedLeft + this.vehicle.speedRight) / 2;
@@ -82,7 +107,9 @@ public class Simulator implements Callable<Double> {
 
         double minDistanceFound;
         double maxDistancePossible = Math.pow(this.vehicle.sensorRange + vehicle.r, 2);
-        for (Sensor sensor : this.vehicle.sensors) {
+        Sensor[] sensors = this.vehicle.sensors;
+        for (int i = 0; i < sensors.length; i++) {
+            Sensor sensor = sensors[i];
             minDistanceFound = maxDistancePossible;
             for (Line obstacle : this.environment.obstacles) {
                 if (sensor.intersects(obstacle)) {
@@ -90,6 +117,7 @@ public class Simulator implements Callable<Double> {
                 }
             }
             sensor.value = minDistanceFound / maxDistancePossible;
+            vehicle.sensorValues[0][i] = sensor.value;
         }
 
         boolean collided = false; // check if car collided with any of the obstacles in the world

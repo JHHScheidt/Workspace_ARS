@@ -43,7 +43,7 @@ public class SimulatorDisplay extends JPanel {
         g2.setStroke(new BasicStroke(1));
 
         // obstacle rendering
-        for (Line obstacle : this.simulator.getObstacles()) {
+        for (Line obstacle : this.simulator.getEnvironment().obstacles) {
             g2.drawLine((int) (obstacle.x1 * this.scale + this.xOffset), (int) (obstacle.y1 * this.scale + this.yOffset), (int) (obstacle.x2 * this.scale + this.xOffset), (int) (obstacle.y2 * this.scale + this.yOffset));
         }
     }
