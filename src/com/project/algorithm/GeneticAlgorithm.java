@@ -3,9 +3,11 @@ package com.project.algorithm;
 import com.project.simulation.Simulator;
 import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
+import java.io.FileInputStream;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -36,6 +38,17 @@ public class GeneticAlgorithm {
      */
     public GeneticAlgorithm(int numInd, int size) {
         this.init(numInd, size);
+    }
+    
+    public GeneticAlgorithm(int numInd, int size, String file){
+        try{
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
+            this.individuals = (ArrayList<Individual>) in.readObject();
+            this.best = this.individuals.get(0);
+            this.generation = Integer.parseInt(file.replaceAll("[^\\d.]",""));
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -59,7 +59,8 @@ public class Base {
 
 
         try {
-            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12);
+            //GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12);
+            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12, "res/generation49-all.txt");
             algorithm.start();
         } catch (ExecutionException e) {
             e.printStackTrace();
