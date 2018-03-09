@@ -2,8 +2,6 @@ package com.project.network;
 
 import Jama.Matrix;
 
-import java.util.Arrays;
-
 public class NeuralNetwork {
 
     // inputWeights = 12, 2

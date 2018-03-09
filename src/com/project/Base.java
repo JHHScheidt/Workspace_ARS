@@ -1,8 +1,6 @@
 package com.project;
 
-import com.project.algorithm.GeneticAlgorithm;
 import com.project.algorithm.Individual;
-import com.project.simulation.Simulator;
 import com.project.simulation.VisualSimulator;
 import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
@@ -10,8 +8,6 @@ import com.project.simulation.environment.Line;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class Base {
 

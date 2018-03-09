@@ -2,8 +2,6 @@ package com.project.simulation.entity;
 
 import com.project.simulation.environment.Line;
 
-import java.util.Arrays;
-
 public class Vehicle {
 
     public double x, y; // x, y location of the car

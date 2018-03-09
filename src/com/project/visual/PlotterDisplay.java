@@ -1,14 +1,6 @@
 package com.project.visual;
 
 import com.orsoncharts.Chart3D;
-import com.orsoncharts.Chart3DFactory;
-import com.orsoncharts.Range;
-import com.orsoncharts.axis.ValueAxis3D;
-import com.orsoncharts.graphics3d.Dimension3D;
-import com.orsoncharts.graphics3d.ViewPoint3D;
-import com.orsoncharts.plot.XYZPlot;
-import com.orsoncharts.renderer.GradientColorScale;
-import com.orsoncharts.renderer.xyz.SurfaceRenderer;
 
 import javax.swing.*;
 import java.awt.*;
