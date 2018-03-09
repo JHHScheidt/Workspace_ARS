@@ -14,9 +14,9 @@ public class Environment {
 			new Line(0, 0, 0, 5),
 			new Line(5, 0, 5, 5),
 			new Line(0, 5, 5, 5) },
-			new Point2D.Double(5, 5),
-			new Point2D.Double(1, 1),
-			new Point2D.Double(4, 4));
+			new Point2D.Double(4.5, 4.5),
+			new Point2D.Double(0.5, 0.5),
+			new Point2D.Double(2.5, 2.5));
 	public static final Environment MAZE_JOSHUA = new Environment(5, 100,
 			new Line[] {
 			new Line(0, 0, 5, 0),

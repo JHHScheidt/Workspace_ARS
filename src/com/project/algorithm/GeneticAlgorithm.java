@@ -85,7 +85,7 @@ public class GeneticAlgorithm {
     public void start() throws ExecutionException, InterruptedException {
         Simulator[] simulators = new Simulator[this.individuals.size()];
         Environment[] environments = new Environment[this.individuals.size()];
-        Environment chosenEnvironment = Environment.MAZE_JOSHUA;
+        Environment chosenEnvironment = Environment.ROOM;
 
         for (int i = 0; i < simulators.length; i++) {
             simulators[i] = new Simulator(i);
