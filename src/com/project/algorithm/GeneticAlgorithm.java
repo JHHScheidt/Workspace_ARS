@@ -85,9 +85,24 @@ public class GeneticAlgorithm {
 
         Line[] obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
                 new Line(0, 0, 0, 5), //left wall
-                new Line(1, 2.5, 4, 2.5), //left wall
                 new Line(5, 0, 5, 5), //right wall
-                new Line(0, 5, 5, 5)}; //bottom wall
+                new Line(0, 5, 5, 5), //bottom wall
+//Maze
+                new Line(4, 5, 4, 1),
+                new Line(3, 0, 3, 4),
+                new Line(2, 1, 2, 3),
+                new Line(2, 4, 2, 5),
+                new Line(1, 1, 2, 1),
+                new Line(0, 2, 1, 2),
+                new Line(1, 3, 3, 3)};
+//Spiral
+//        		new Line(1, 0, 1, 4),
+//        		new Line(1, 4, 4, 4),
+//        		new Line(4, 4, 4, 1),
+//        		new Line(4, 1, 2, 1),
+//        		new Line(2, 1, 2, 3),
+//        		new Line(2, 3, 3, 3),
+//        		new Line(3, 3, 3, 2)};
 
         for (int i = 0; i < simulators.length; i++) {
             simulators[i] = new Simulator(i);
@@ -99,7 +114,7 @@ public class GeneticAlgorithm {
         ArrayList<Future<Double>> futures = new ArrayList<>();
         ArrayList<Simulator> tasks = new ArrayList<>();
         int numberOfRuns = this.generation;
-        for (int i = (this.generation>1?this.generation:1); i < numberOfRuns+250; i++) {
+        for (int i = (this.generation>1?this.generation:1); i < numberOfRuns+2001; i++) {
             System.out.println("Starting generation " + this.generation);
 
             long start = System.currentTimeMillis();
@@ -107,7 +122,7 @@ public class GeneticAlgorithm {
             // evaluate
             for (int j = 0; j < simulators.length; j++) {
                 environments[j].reset();
-                simulators[j].init(this.individuals.get(j), environments[j], 2.5, 2, 100);
+                simulators[j].init(this.individuals.get(j), environments[j], 2.5, 2.5, 100);
                 futures.add(executorService.submit(simulators[j]));
                 tasks.add(simulators[j]);
             }
@@ -123,26 +138,29 @@ public class GeneticAlgorithm {
                         this.individuals.get(completedSimulator.id).setFitness(future.get());
                         if (this.best.getFitness() < this.individuals.get(completedSimulator.id).getFitness())
                             this.best = this.individuals.get(completedSimulator.id);
-                        System.out.println("results gathered for " + j-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
+//                        System.out.println("results gathered for " + j-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
                     }
                 }
 
                 Thread.sleep(10);
             }
 
-            System.out.println(System.currentTimeMillis() - start);
-
-            // storing of population
-            try {
-                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-all.txt"));
-                out.writeObject(this.individuals);
-                out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-best.txt"));
-                this.generation++;
-                out.writeObject(this.best);
-            } catch (IOException e) {
-                e.printStackTrace();
+//            System.out.println(System.currentTimeMillis() - start);
+            
+            if(i%100 == 0) {
+                System.out.println("Current best: "+this.best);
+            	// storing of population
+                try {
+                    ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/maze/generation" + this.generation + "-all.txt"));
+                    out.writeObject(this.individuals);
+                    out = new ObjectOutputStream(new FileOutputStream("res/maze/generation" + this.generation + "-best.txt"));
+                    out.writeObject(this.best);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
+            this.generation++;
 
             // evolvePopulation
             this.evolvePopulation();

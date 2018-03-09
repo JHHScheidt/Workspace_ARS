@@ -29,7 +29,7 @@ public class VisualSimulator implements  Runnable {
 
         this.environment = environment;
         this.vehicleNetwork = new NeuralNetwork(individual.getInputWeights(), individual.getRecurWeights());
-        this.vehicle = new Vehicle(2, 2, 0.17, 0.5, sensorLocations);
+        this.vehicle = new Vehicle(2.5, 2.5, 0.17, 0.5, sensorLocations);
 
         this.display = new SimulatorDisplay(this); //setup the GUI
 
