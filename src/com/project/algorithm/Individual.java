@@ -9,7 +9,8 @@ public class Individual implements Serializable {
 
     private double[][] inputWeights;
     private double[][] recurrentWeights;
-    private double fitness;
+
+    public double fitness;
 
     public Individual(double[][] inputWeights, double[][] recurrentWeigths, double fitness) {
         this.inputWeights = inputWeights;
@@ -25,10 +26,6 @@ public class Individual implements Serializable {
         this.recurrentWeights = weights;
     }
 
-    public void setFitness(double fitness) {
-        this.fitness = fitness;
-    }
-
     public double[][] getInputWeights() {
         return this.inputWeights;
     }
@@ -36,8 +33,5 @@ public class Individual implements Serializable {
     public double[][] getRecurWeights(){
         return this.recurrentWeights;
     }
-    
-    public double getFitness() {
-        return this.fitness;
-    }
+
 }

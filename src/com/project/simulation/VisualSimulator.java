@@ -9,6 +9,7 @@ import com.project.simulation.environment.Line;
 import com.project.visual.SimulatorDisplay;
 
 import javax.swing.*;
+import java.awt.geom.Point2D;
 
 /**
  * @author Marciano, Rico, Joshua, Simon
@@ -25,7 +26,7 @@ public class VisualSimulator implements  Runnable {
     
     private int previousX, previousY;
 
-    public VisualSimulator(Environment environment, Individual individual) {
+    public VisualSimulator(Environment environment, Individual individual, Point2D.Double startLocation) {
         int sensors = 12; // here we can change the number of sensors
         double[] sensorLocations = new double[sensors];
         for (int i = 0; i < sensors; i++) {
@@ -37,7 +38,7 @@ public class VisualSimulator implements  Runnable {
 
         this.environment = environment;
         this.vehicleNetwork = new NeuralNetwork(individual.getInputWeights(), individual.getRecurWeights());
-        this.vehicle = new Vehicle(2.5, 2.5, 0.17, 0.5, sensorLocations);
+        this.vehicle = new Vehicle(startLocation.x, startLocation.y, 0.17, 0.5, sensorLocations);
 
         this.display = new SimulatorDisplay(this); //setup the GUI
 

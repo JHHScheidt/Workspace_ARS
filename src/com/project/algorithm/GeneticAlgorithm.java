@@ -4,6 +4,7 @@ import com.project.simulation.Simulator;
 import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
 
+import java.awt.geom.Point2D;
 import java.io.*;
 
 import java.util.ArrayList;
@@ -84,10 +85,12 @@ public class GeneticAlgorithm {
     public void start() throws ExecutionException, InterruptedException {
         Simulator[] simulators = new Simulator[this.individuals.size()];
         Environment[] environments = new Environment[this.individuals.size()];
+        Environment chosenEnvironment = Environment.MAZE_JOSHUA;
+
 
         for (int i = 0; i < simulators.length; i++) {
             simulators[i] = new Simulator(i);
-            environments[i] = Environment.MAZE_JOSHUA.clone();
+            environments[i] = chosenEnvironment.clone();
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(8);
@@ -99,36 +102,36 @@ public class GeneticAlgorithm {
         for (int i = (this.generation>1?this.generation:1); i < numberOfRuns+2001; i++) {
             System.out.println("Starting generation " + this.generation);
 
-            long start = System.currentTimeMillis();
+            for (Individual individual : this.individuals)
+                individual.fitness = 0;
 
             // evaluate
-            for (int j = 0; j < simulators.length; j++) {
-                environments[j].reset();
-                simulators[j].init(this.individuals.get(j), environments[j], 2.5, 2.5, 100);
-                futures.add(executorService.submit(simulators[j]));
-                tasks.add(simulators[j]);
-            }
-
-            Future<Double> future;
-            while (futures.size() > 0) {
-                for (int j = 0; j < futures.size(); j++) {
-                    future = futures.get(j);
-
-                    if (future.isDone()) {
-                        futures.remove(j);
-                        Simulator completedSimulator = tasks.remove(j);
-                        this.individuals.get(completedSimulator.id).setFitness(future.get());
-                        if (this.best.getFitness() < this.individuals.get(completedSimulator.id).getFitness())
-                            this.best = this.individuals.get(completedSimulator.id);
-//                        System.out.println("results gathered for " + j-- + " with value " + this.individuals.get(completedSimulator.id).getFitness());
-                    }
+            for (Point2D.Double startingLocation : chosenEnvironment.startingLocations) {
+                for (int j = 0; j < simulators.length; j++) {
+                    environments[j].reset();
+                    simulators[j].init(this.individuals.get(j), environments[j], startingLocation.x, startingLocation.y, 100);
+                    futures.add(executorService.submit(simulators[j]));
+                    tasks.add(simulators[j]);
                 }
 
-                Thread.sleep(10);
+                Future<Double> future;
+                while (futures.size() > 0) {
+                    for (int j = 0; j < futures.size(); j++) {
+                        future = futures.get(j);
+
+                        if (future.isDone()) {
+                            futures.remove(j);
+                            Simulator completedSimulator = tasks.remove(j);
+                            this.individuals.get(completedSimulator.id).fitness += future.get() / chosenEnvironment.startingLocations.length;
+                            if (this.best.fitness < this.individuals.get(completedSimulator.id).fitness)
+                                this.best = this.individuals.get(completedSimulator.id);
+                        }
+                    }
+
+                    Thread.sleep(10);
+                }
             }
 
-//            System.out.println(System.currentTimeMillis() - start);
-            
             if(i%100 == 0) {
                 System.out.println("Current best: "+this.best);
             	// storing of population
@@ -154,12 +157,12 @@ public class GeneticAlgorithm {
     public void doStatistics() {
         double mean = 0;
         for (Individual individual : this.individuals)
-            mean += individual.getFitness();
+            mean += individual.fitness;
         mean /= individuals.size();
 
         double std = 0;
         for (Individual individual : this.individuals)
-            std += Math.pow(individual.getFitness() - mean, 2);
+            std += Math.pow(individual.fitness - mean, 2);
         std /= this.individuals.size() - 1;
         std = Math.sqrt(std);
 
@@ -188,7 +191,7 @@ public class GeneticAlgorithm {
      */
     public void evolvePopulation() {
         ArrayList<Individual> newPopulation = new ArrayList<>();
-        System.out.println("best: " + this.best.getFitness());
+        System.out.println("best: " + this.best.fitness);
         // Keep our best individual
         int elitismOffset = 0;
         if (ELITISM) {
@@ -231,7 +234,7 @@ public class GeneticAlgorithm {
         }
         int bestIndex = 0;
         for (int i = 1; i < tournament.length; i++) {
-            if (tournament[i].getFitness() > tournament[bestIndex].getFitness()) {
+            if (tournament[i].fitness > tournament[bestIndex].fitness) {
                 bestIndex = i;
             }
         }

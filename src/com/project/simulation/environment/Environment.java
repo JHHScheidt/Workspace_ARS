@@ -54,8 +54,6 @@ public class Environment {
 			new Point2D.Double(1.5, 3.5),
 			new Point2D.Double(4.5, 0.5));
 
-	private Point2D.Double[] startingLocations;
-
 	public Line[] obstacles; // all obstacles, the walls for example are all in here
 	public Point2D.Double[] startingLocations;
 
@@ -75,7 +73,6 @@ public class Environment {
 		this.subdivisionSize = this.size / subdivisions;
 
 		this.startingLocations = startingLocations;
-		this.flip();
 	}
 
 	public void reset() {
@@ -95,13 +92,12 @@ public class Environment {
 			l.x1 = -l.x1;
 			l.x2 = -l.x2;
 		}
-		for(Point2D.Double p : flippedStart) {
-			p.x = -p.x;
-			p.y = -p.y;
-		}
 		for(Line l : flippedObst) {
 			l.x1 += largestX;
 			l.x2 += largestX;
+		}
+		for(Point2D.Double p : flippedStart) {
+			p.x = -p.x + largestX;
 		}
 		this.obstacles = flippedObst;
 		this.startingLocations = flippedStart;

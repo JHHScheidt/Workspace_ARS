@@ -34,27 +34,14 @@ public class Base {
 
     public static void main(String[] args) {
         try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream("res/maze/generation(3)4900-best.txt"));
+            ObjectInputStream in = new ObjectInputStream(new FileInputStream("res/generation41-best.txt"));
             Individual individual = (Individual) in.readObject();
 //            ArrayList<Individual> generation = (ArrayList<Individual>) in.readObject();
 
-            Line[] obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
-                    new Line(0, 0, 0, 5), //left wall
-                    new Line(5, 0, 5, 5), //right wall
-                    new Line(0, 5, 5, 5), //bottom wall
-                    new Line(4, 5, 4, 1),
-                    new Line(3, 0, 3, 4),
-                    new Line(2, 1, 2, 3),
-                    new Line(2, 4, 2, 5),
-                    new Line(1, 1, 2, 1),
-                    new Line(0, 2, 1, 2),
-                    new Line(1, 3, 1, 4),
-                    new Line(1, 3, 3, 3)
-            };
+            Environment environment = Environment.MAZE_JOSHUA;
+            environment.flip();
 
-            Environment environment = new Environment(5, 100, obstacles);
-
-            VisualSimulator simulator = new VisualSimulator(environment, individual);
+            VisualSimulator simulator = new VisualSimulator(environment, individual, environment.startingLocations[0]);
 //            VisualSimulator simulator = new VisualSimulator(environment, generation.get(0));
             simulator.start();
             simulator.run();
