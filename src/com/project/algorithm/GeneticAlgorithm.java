@@ -38,11 +38,12 @@ public class GeneticAlgorithm {
      * @param size   This number should hold true to the number of sensors on the vehicle
      */
     public GeneticAlgorithm(int numInd, int size) {
-        this.init(numInd, size);
         this.random = new Random(42);
+        this.init(numInd, size);
     }
     
     public GeneticAlgorithm(int numInd, int size, String file){
+        this.random = new Random(42);
         try{
             ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
             this.individuals = (ArrayList<Individual>) in.readObject();
@@ -51,7 +52,6 @@ public class GeneticAlgorithm {
         } catch(Exception e){
             e.printStackTrace();
         }
-        this.random = new Random(42);
     }
 
     /**
@@ -86,7 +86,6 @@ public class GeneticAlgorithm {
         Simulator[] simulators = new Simulator[this.individuals.size()];
         Environment[] environments = new Environment[this.individuals.size()];
         Environment chosenEnvironment = Environment.MAZE_JOSHUA;
-
 
         for (int i = 0; i < simulators.length; i++) {
             simulators[i] = new Simulator(i);

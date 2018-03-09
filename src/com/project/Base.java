@@ -1,5 +1,6 @@
 package com.project;
 
+import com.project.algorithm.GeneticAlgorithm;
 import com.project.algorithm.Individual;
 import com.project.simulation.VisualSimulator;
 import com.project.simulation.environment.Environment;
@@ -8,6 +9,7 @@ import com.project.simulation.environment.Line;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Marciano, Rico, Joshua, Simon
@@ -33,33 +35,33 @@ public class Base {
     }
 
     public static void main(String[] args) {
-        try {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream("res/generation41-best.txt"));
-            Individual individual = (Individual) in.readObject();
-//            ArrayList<Individual> generation = (ArrayList<Individual>) in.readObject();
-
-            Environment environment = Environment.MAZE_JOSHUA;
-            environment.flip();
-
-            VisualSimulator simulator = new VisualSimulator(environment, individual, environment.startingLocations[0]);
-//            VisualSimulator simulator = new VisualSimulator(environment, generation.get(0));
-            simulator.start();
-            simulator.run();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
 //        try {
-//            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12);
-////            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12, "res/maze/generation900-all.txt");
-//            algorithm.start();
-//        } catch (ExecutionException e) {
+//            ObjectInputStream in = new ObjectInputStream(new FileInputStream("res/generation41-best.txt"));
+//            Individual individual = (Individual) in.readObject();
+////            ArrayList<Individual> generation = (ArrayList<Individual>) in.readObject();
+//
+//            Environment environment = Environment.MAZE_JOSHUA;
+//            environment.flip();
+//
+//            VisualSimulator simulator = new VisualSimulator(environment, individual, environment.startingLocations[0]);
+////            VisualSimulator simulator = new VisualSimulator(environment, generation.get(0));
+//            simulator.start();
+//            simulator.run();
+//        } catch (IOException e) {
 //            e.printStackTrace();
-//        } catch (InterruptedException e) {
+//        } catch (ClassNotFoundException e) {
 //            e.printStackTrace();
 //        }
+
+
+        try {
+            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12);
+//            GeneticAlgorithm algorithm = new GeneticAlgorithm(100, 12, "res/maze/generation900-all.txt");
+            algorithm.start();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
