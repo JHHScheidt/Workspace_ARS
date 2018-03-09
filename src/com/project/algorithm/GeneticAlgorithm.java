@@ -84,15 +84,24 @@ public class GeneticAlgorithm {
                 new Line(0, 0, 0, 5), //left wall
                 new Line(5, 0, 5, 5), //right wall
                 new Line(0, 5, 5, 5), //bottom wall
-//Maze
-                new Line(4, 5, 4, 1),
-                new Line(3, 0, 3, 4),
-                new Line(2, 1, 2, 3),
-                new Line(2, 4, 2, 5),
-                new Line(1, 1, 2, 1),
-                new Line(0, 2, 1, 2),
-                new Line(1, 3, 1, 4),
-                new Line(1, 3, 3, 3)};
+//Maze (left)
+//                new Line(4, 5, 4, 1),
+//                new Line(3, 0, 3, 4),
+//                new Line(2, 1, 2, 3),
+//                new Line(2, 4, 2, 5),
+//                new Line(1, 1, 2, 1),
+//                new Line(0, 2, 1, 2),
+//                new Line(1, 3, 1, 4),
+//                new Line(1, 3, 3, 3)};
+//Maze (right)
+		        new Line(1, 5, 1, 1),
+		        new Line(2, 0, 2, 4),
+		        new Line(3, 1, 3, 3),
+		        new Line(3, 4, 3, 5),
+		        new Line(4, 1, 3, 1),
+		        new Line(5, 2, 4, 2),
+		        new Line(4, 3, 4, 4),
+		        new Line(4, 3, 2, 3)};
 //Spiral
 //        		new Line(1, 0, 1, 4),
 //        		new Line(1, 4, 4, 4),
