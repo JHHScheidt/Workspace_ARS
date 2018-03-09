@@ -57,6 +57,7 @@ public class Environment {
 	private Point2D.Double[] startingLocations;
 
 	public Line[] obstacles; // all obstacles, the walls for example are all in here
+	public Point2D.Double[] startingLocations;
 
 	public double subdivisionSize;
 	public int[][] grid;
@@ -74,6 +75,7 @@ public class Environment {
 		this.subdivisionSize = this.size / subdivisions;
 
 		this.startingLocations = startingLocations;
+		this.flip();
 	}
 
 	public void reset() {
@@ -84,20 +86,25 @@ public class Environment {
 		}
 	}
 	
-	public Line[] flip(Line[] obstacles) {
-		Line[] flipped = Arrays.copyOf(obstacles, obstacles.length);
+	public void flip() {
+		Line[] flippedObst = Arrays.copyOf(this.obstacles, this.obstacles.length);
+		Point2D.Double[] flippedStart = Arrays.copyOf(this.startingLocations, this.startingLocations.length);
 		double largestX = 0;
-		for(Line l : flipped) {
+		for(Line l : flippedObst) {
 			if(Math.max(l.x1, l.x2) > largestX) largestX = Math.max(l.x1, l.x2);
-			l.x1 = l.x1*-1;
-			l.x2 = l.x2*-1;
+			l.x1 = -l.x1;
+			l.x2 = -l.x2;
 		}
-		for(Line l : flipped) {
+		for(Point2D.Double p : flippedStart) {
+			p.x = -p.x;
+			p.y = -p.y;
+		}
+		for(Line l : flippedObst) {
 			l.x1 += largestX;
 			l.x2 += largestX;
 		}
-		
-		return flipped;
+		this.obstacles = flippedObst;
+		this.startingLocations = flippedStart;
 	}
 
 	public Environment clone() {
