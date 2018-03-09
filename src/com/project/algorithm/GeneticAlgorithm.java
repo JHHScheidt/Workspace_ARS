@@ -7,6 +7,7 @@ import com.project.simulation.environment.Line;
 import java.io.*;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,6 +28,8 @@ public class GeneticAlgorithm {
 
     private int generation;
 
+    private Random random;
+
     /**
      * Constructor for the GeneticAlgorithm
      *
@@ -35,6 +38,7 @@ public class GeneticAlgorithm {
      */
     public GeneticAlgorithm(int numInd, int size) {
         this.init(numInd, size);
+        this.random = new Random(42);
     }
     
     public GeneticAlgorithm(int numInd, int size, String file){
@@ -46,6 +50,7 @@ public class GeneticAlgorithm {
         } catch(Exception e){
             e.printStackTrace();
         }
+        this.random = new Random(42);
     }
 
     /**
@@ -61,12 +66,12 @@ public class GeneticAlgorithm {
             double[][] tempRecur = new double[NN_OUTPUT][NN_OUTPUT];
             for (int j = 0; j < tempInput.length; j++) {
                 for (int k = 0; k < tempInput[0].length; k++) {
-                    tempInput[j][k] = Math.random() * 10 - 5;
+                    tempInput[j][k] = this.random.nextDouble() * 10 - 5;
                 }
             }
             for (int j = 0; j < tempRecur.length; j++) {
                 for (int k = 0; k < tempRecur.length; k++) {
-                    tempRecur[j][k] = Math.random() * 10 - 5;
+                    tempRecur[j][k] = this.random.nextDouble() * 10 - 5;
                 }
             }
             this.individuals.add(new Individual(tempInput, tempRecur, 0));
@@ -80,40 +85,9 @@ public class GeneticAlgorithm {
         Simulator[] simulators = new Simulator[this.individuals.size()];
         Environment[] environments = new Environment[this.individuals.size()];
 
-        Line[] obstacles = new Line[]{new Line(0, 0, 5, 0), //top wall
-                new Line(0, 0, 0, 5), //left wall
-                new Line(5, 0, 5, 5), //right wall
-                new Line(0, 5, 5, 5), //bottom wall
-//Maze (left)
-                new Line(4, 5, 4, 1),
-                new Line(3, 0, 3, 4),
-                new Line(2, 1, 2, 3),
-                new Line(2, 4, 2, 5),
-                new Line(1, 1, 2, 1),
-                new Line(0, 2, 1, 2),
-                new Line(1, 3, 1, 4),
-                new Line(1, 3, 3, 3)};
-//Maze (right)
-//		        new Line(1, 5, 1, 1),
-//		        new Line(2, 0, 2, 4),
-//		        new Line(3, 1, 3, 3),
-//		        new Line(3, 4, 3, 5),
-//		        new Line(4, 1, 3, 1),
-//		        new Line(5, 2, 4, 2),
-//		        new Line(4, 3, 4, 4),
-//		        new Line(4, 3, 2, 3)};
-//Spiral
-//        		new Line(1, 0, 1, 4),
-//        		new Line(1, 4, 4, 4),
-//        		new Line(4, 4, 4, 1),
-//        		new Line(4, 1, 2, 1),
-//        		new Line(2, 1, 2, 3),
-//        		new Line(2, 3, 3, 3),
-//        		new Line(3, 3, 3, 2)};
-
         for (int i = 0; i < simulators.length; i++) {
             simulators[i] = new Simulator(i);
-            environments[i] = new Environment(5, 100, obstacles);
+            environments[i] = Environment.MAZE_JOSHUA.clone();
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(8);
@@ -232,7 +206,7 @@ public class GeneticAlgorithm {
 
         // Mutate population
         for (int i = elitismOffset; i < newPopulation.size(); i++) {
-            if (Math.random() >= 0.5) {
+            if (this.random.nextDouble() >= 0.5) {
                 newPopulation.get(i).setInputWeights(randomMutation(newPopulation.get(i).getInputWeights()));
                 newPopulation.get(i).setRecurWeights(randomMutation(newPopulation.get(i).getRecurWeights()));
             } else {
@@ -253,7 +227,7 @@ public class GeneticAlgorithm {
     public Individual tournamentSelection() {
         Individual[] tournament = new Individual[TOURNAMENT_SIZE];
         for (int i = 0; i < TOURNAMENT_SIZE; i++) {
-            tournament[i] = this.individuals.get((int) (Math.random() * this.individuals.size()));
+            tournament[i] = this.individuals.get((int) (this.random.nextDouble() * this.individuals.size()));
         }
         int bestIndex = 0;
         for (int i = 1; i < tournament.length; i++) {
@@ -276,7 +250,7 @@ public class GeneticAlgorithm {
             index[0] = -1;
             index[1] = -1;
             for (int j = 0; j < ind[i].length; j++) {
-                if (Math.random() < MUTATION_RATE) {
+                if (this.random.nextDouble() < MUTATION_RATE) {
                     if (index[0] == -1) {
                         index[0] = j;
                     } else if (index[1] == -1) {
@@ -307,8 +281,8 @@ public class GeneticAlgorithm {
         outerLoop:
         for (int i = 0; i < ind.length; i++) {
             for (int j = 0; j < ind[i].length; j++) {
-                if (Math.random() < MUTATION_RATE) {
-                    ind[i][j] += (Math.random() - 0.5) * 10;
+                if (this.random.nextDouble() < MUTATION_RATE) {
+                    ind[i][j] += (this.random.nextDouble() - 0.5) * 10;
                     if (++mutations > 5) break outerLoop;
                 }
             }

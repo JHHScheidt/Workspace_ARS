@@ -15,17 +15,15 @@ import java.util.concurrent.Callable;
 public class Simulator implements Callable<Double> {
 
     private boolean running; // is the simulation running
+    private long simulationTime;
 
     private Environment environment; // the environment the vehicle is exploring
 
     private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
-
-    private long simulationTime;
+    private int previousX, previousY;
 
     public int id;
-    
-    private int previousX, previousY;
 
     public Simulator(int id) {
         int sensors = 12; // here we can change the number of sensors
@@ -150,10 +148,6 @@ public class Simulator implements Callable<Double> {
         	this.previousX = environmentX;
         	this.previousY = environmentY;
         }
-    }
-
-    public boolean isRunning() {
-        return this.running;
     }
 
     @Override
