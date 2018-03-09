@@ -2,7 +2,6 @@ package com.project.algorithm;
 
 import com.project.simulation.Simulator;
 import com.project.simulation.environment.Environment;
-import com.project.simulation.environment.Line;
 
 import java.awt.geom.Point2D;
 import java.io.*;
@@ -85,7 +84,7 @@ public class GeneticAlgorithm {
     public void start() throws ExecutionException, InterruptedException {
         Simulator[] simulators = new Simulator[this.individuals.size()];
         Environment[] environments = new Environment[this.individuals.size()];
-        Environment chosenEnvironment = Environment.ROOM;
+        Environment chosenEnvironment = Environment.MAZE_JOSHUA;
 
         for (int i = 0; i < simulators.length; i++) {
             simulators[i] = new Simulator(i);
@@ -131,18 +130,9 @@ public class GeneticAlgorithm {
                 }
             }
 
-            if(i%100 == 0) {
+            if(i%5 == 0) {
                 System.out.println("Current best: "+this.best);
-            	// storing of population
-                try {
-                    ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/maze/generation(2)" + this.generation + "-all.txt"));
-                    out.writeObject(this.individuals);
-                    out = new ObjectOutputStream(new FileOutputStream("res/maze/generation(2)" + this.generation + "-best.txt"));
-                    out.writeObject(this.best);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                this.doStatistics();
+               this.doStatisticsAndStorePopulation();
             }
 
             // evolvePopulation
@@ -153,7 +143,7 @@ public class GeneticAlgorithm {
         executorService.shutdown();
     }
 
-    public void doStatistics() {
+    public void doStatisticsAndStorePopulation() {
         double mean = 0;
         for (Individual individual : this.individuals)
             mean += individual.fitness;
