@@ -157,7 +157,8 @@ public class Simulator implements Callable<Double> {
         double fitness = 0;
         for (int[] array : this.environment.grid) {
             for (int value : array) {
-                fitness += value*(value>1?-1:1);
+                if (value > 0) fitness += 1;
+                if (value > 1) fitness -= 0.4 * (value - 1);
             }
         }
 
