@@ -22,6 +22,8 @@ public class Simulator implements Callable<Double> {
     private long simulationTime;
 
     public int id;
+    
+    private int previousX, previousY;
 
     public Simulator(int id) {
         int sensors = 12; // here we can change the number of sensors
@@ -39,6 +41,9 @@ public class Simulator implements Callable<Double> {
 
         this.vehicle.x = startX;
         this.vehicle.y = startY;
+        
+        this.previousX = -1;
+        this.previousY = -1;
 
         this.environment = environment;
         this.simulationTime = simulationTime;
@@ -138,7 +143,11 @@ public class Simulator implements Callable<Double> {
         // indicate which spot of the environment has been visited
         int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
         int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
-        this.environment.grid[environmentX][environmentY]++;
+        if(environmentX != this.previousX && environmentY != this.previousY) {
+        	this.environment.grid[environmentX][environmentY]++;
+        	this.previousX = environmentX;
+        	this.previousY = environmentY;
+        }
     }
 
     public boolean isRunning() {

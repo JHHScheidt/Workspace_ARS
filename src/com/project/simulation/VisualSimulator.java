@@ -19,6 +19,8 @@ public class VisualSimulator implements  Runnable {
     private Vehicle vehicle; // the car
 
     private Environment environment; // the environment the vehicle is exploring
+    
+    private int previousX, previousY;
 
     public VisualSimulator(Environment environment, Individual individual) {
         int sensors = 12; // here we can change the number of sensors
@@ -26,6 +28,9 @@ public class VisualSimulator implements  Runnable {
         for (int i = 0; i < sensors; i++) {
             sensorLocations[i] = i * (Math.PI * 2) / sensors; // space sensors equally around the car
         }
+
+        this.previousX = -1;
+        this.previousY = -1;
 
         this.environment = environment;
         this.vehicleNetwork = new NeuralNetwork(individual.getInputWeights(), individual.getRecurWeights());
@@ -125,7 +130,11 @@ public class VisualSimulator implements  Runnable {
         // indicate which spot of the environment has been visited
         int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
         int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
-        this.environment.grid[environmentX][environmentY]++;
+        if(environmentX != this.previousX && environmentY != this.previousY) {
+        	this.environment.grid[environmentX][environmentY]++;
+        	this.previousX = environmentX;
+        	this.previousY = environmentY;
+        }
     }
 
     public void start() {
