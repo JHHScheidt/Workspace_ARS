@@ -49,7 +49,7 @@ public class Line {
 		double q = c / a;
 
 		double disc = pBy2 * pBy2 - q;
-		if (disc <= 0) return false;
+		if (disc < 0) return false;
 
 		double tmpSqrt = Math.sqrt(disc);
 		double abScalingFactor1 = -pBy2 + tmpSqrt;
@@ -67,13 +67,19 @@ public class Line {
 		maxYBound = (minYBound == this.y1) ? this.y2 : this.y1;
 
 		if (disc == 0) {
-			if ((intersectXOne >= minXBound && intersectXOne <= maxXBound) && (intersectYOne >= minYBound && intersectYOne <= maxYBound)) return true;
-		}
+            if ((intersectXOne >= minXBound && intersectXOne <= maxXBound) && (intersectYOne >= minYBound && intersectYOne <= maxYBound)) return true;
+            return false;
+        } else {
+            double intersectXTwo = this.x1 - baX * abScalingFactor2;
+            double intersectYTwo = this.y1 - baY * abScalingFactor2;
 
-		double intersectXTwo = this.x1 - baX * abScalingFactor2;
-		double intersectYTwo = this.y1 - baY * abScalingFactor2;
-
-		if ((intersectXTwo >= minXBound && intersectXTwo <= maxXBound) && (intersectYTwo >= minYBound && intersectYTwo <= maxYBound)) return true;
-		return false;
+            if ((intersectXOne >= minXBound && intersectXOne <= maxXBound) && (intersectYOne >= minYBound && intersectYOne <= maxYBound)) return true;
+            if ((intersectXTwo >= minXBound && intersectXTwo <= maxXBound) && (intersectYTwo >= minYBound && intersectYTwo <= maxYBound)) return true;
+            return false;
+        }
+	}
+	
+	public Line clone() {
+		return new Line(this.x1, this.y1, this.x2, this.y2);
 	}
 }

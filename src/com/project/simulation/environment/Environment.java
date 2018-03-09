@@ -24,4 +24,20 @@ public class Environment {
 			}
 		}
 	}
+	
+	public Line[] flip(Line[] obstacles) {
+		Line[] flipped = obstacles.clone();
+		double largestX = 0;
+		for(Line l : flipped) {
+			if(Math.max(l.x1, l.x2) > largestX) largestX = Math.max(l.x1, l.x2);
+			l.x1 = l.x1*-1;
+			l.x2 = l.x2*-1;
+		}
+		for(Line l : flipped) {
+			l.x1 += largestX;
+			l.x2 += largestX;
+		}
+		
+		return flipped;
+	}
 }

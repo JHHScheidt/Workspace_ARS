@@ -50,7 +50,7 @@ public class VisualSimulator implements  Runnable {
         long start = System.currentTimeMillis();
         long current;
 
-        double FPS = 60; // limit gui to 60 fps
+        double FPS = 300; // limit gui to 60 fps
         double simulationTime = 0;
 
         while (this.running) {
