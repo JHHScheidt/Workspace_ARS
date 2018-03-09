@@ -3,12 +3,9 @@ package com.project.algorithm;
 import com.project.simulation.Simulator;
 import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
-import java.io.FileInputStream;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
+
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -113,6 +110,7 @@ public class GeneticAlgorithm {
 
         ArrayList<Future<Double>> futures = new ArrayList<>();
         ArrayList<Simulator> tasks = new ArrayList<>();
+
         int numberOfRuns = this.generation;
         for (int i = (this.generation>1?this.generation:1); i < numberOfRuns+2001; i++) {
             System.out.println("Starting generation " + this.generation);
@@ -158,15 +156,47 @@ public class GeneticAlgorithm {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                this.doStatistics();
             }
 
             this.generation++;
 
             // evolvePopulation
             this.evolvePopulation();
+            this.generation++;
         }
 
         executorService.shutdown();
+    }
+
+    public void doStatistics() {
+        double mean = 0;
+        for (Individual individual : this.individuals)
+            mean += individual.getFitness();
+        mean /= individuals.size();
+
+        double std = 0;
+        for (Individual individual : this.individuals)
+            std += Math.pow(individual.getFitness() - mean, 2);
+        std /= this.individuals.size() - 1;
+        std = Math.sqrt(std);
+
+        try {
+            ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-all.txt"));
+            out.writeObject(this.individuals);
+            out.close();
+            out = new ObjectOutputStream(new FileOutputStream("res/generation" + this.generation + "-best.txt"));
+            out.writeObject(this.best);
+            out.close();
+
+            PrintWriter writer = new PrintWriter(new FileOutputStream("res/statistics.txt", true));
+            writer.println(mean + ", " + std);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
