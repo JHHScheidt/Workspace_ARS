@@ -1,5 +1,8 @@
 package com.project.simulation.environment;
 
+/**
+ * @author Marciano, Rico, Joshua, Simon
+ */
 public class Environment {
 
 	public double size; // width and height of the room

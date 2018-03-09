@@ -7,6 +7,9 @@ import com.project.simulation.VisualSimulator;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * @author Simon, Rico
+ */
 public class SimulatorDisplay extends JPanel {
 
     private VisualSimulator simulator;

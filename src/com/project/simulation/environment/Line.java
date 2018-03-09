@@ -2,6 +2,9 @@ package com.project.simulation.environment;
 
 import com.project.simulation.entity.Vehicle;
 
+/**
+ * @author Joshua, Simon
+ */
 public class Line {
 
 	public double xIntersect, yIntersect; // The intersection is put into these variables if it exists

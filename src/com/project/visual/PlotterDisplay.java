@@ -6,6 +6,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * @author Simon
+ */
 public class PlotterDisplay extends JPanel {
 
     private Chart3D chart;

@@ -9,6 +9,9 @@ import com.project.simulation.environment.Line;
 
 import java.util.concurrent.Callable;
 
+/**
+ * @author Marciano, Rico, Joshua, Simon
+ */
 public class Simulator implements Callable<Double> {
 
     private boolean running; // is the simulation running

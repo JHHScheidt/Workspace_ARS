@@ -10,6 +10,9 @@ import com.project.visual.SimulatorDisplay;
 
 import javax.swing.*;
 
+/**
+ * @author Marciano, Rico, Joshua, Simon
+ */
 public class VisualSimulator implements  Runnable {
 
     private boolean running; // is the simulation running

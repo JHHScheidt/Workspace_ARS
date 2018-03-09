@@ -9,6 +9,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
+/**
+ * @author Marciano, Rico, Joshua, Simon
+ */
 public class Base {
 
     public Base() {

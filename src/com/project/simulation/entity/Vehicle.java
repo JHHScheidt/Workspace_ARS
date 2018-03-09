@@ -2,6 +2,9 @@ package com.project.simulation.entity;
 
 import com.project.simulation.environment.Line;
 
+/**
+ * @author Joshua, Simon
+ */
 public class Vehicle {
 
     public double x, y; // x, y location of the car

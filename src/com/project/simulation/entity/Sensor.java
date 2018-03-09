@@ -2,6 +2,9 @@ package com.project.simulation.entity;
 
 import com.project.simulation.environment.Line;
 
+/**
+ * @author Joshua, Simon
+ */
 public class Sensor extends Line {
 
 	public double value;
