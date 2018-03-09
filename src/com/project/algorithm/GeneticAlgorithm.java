@@ -61,12 +61,12 @@ public class GeneticAlgorithm {
             double[][] tempRecur = new double[NN_OUTPUT][NN_OUTPUT];
             for (int j = 0; j < tempInput.length; j++) {
                 for (int k = 0; k < tempInput[0].length; k++) {
-                    tempInput[j][k] = Math.random() * 10;
+                    tempInput[j][k] = Math.random() * 10 - 5;
                 }
             }
             for (int j = 0; j < tempRecur.length; j++) {
                 for (int k = 0; k < tempRecur.length; k++) {
-                    tempRecur[j][k] = Math.random() * 10;
+                    tempRecur[j][k] = Math.random() * 10 - 5;
                 }
             }
             this.individuals.add(new Individual(tempInput, tempRecur, 0));
@@ -159,9 +159,9 @@ public class GeneticAlgorithm {
                 System.out.println("Current best: "+this.best);
             	// storing of population
                 try {
-                    ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/maze/generation" + this.generation + "-all.txt"));
+                    ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("res/maze/generation(2)" + this.generation + "-all.txt"));
                     out.writeObject(this.individuals);
-                    out = new ObjectOutputStream(new FileOutputStream("res/maze/generation" + this.generation + "-best.txt"));
+                    out = new ObjectOutputStream(new FileOutputStream("res/maze/generation(2)" + this.generation + "-best.txt"));
                     out.writeObject(this.best);
                 } catch (IOException e) {
                     e.printStackTrace();
