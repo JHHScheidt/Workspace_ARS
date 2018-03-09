@@ -35,7 +35,7 @@ public class SimulatorDisplay extends JPanel {
             g2.drawLine((int) (line.x1 * this.scale + this.xOffset), (int) (line.y1 * this.scale + this.yOffset), (int) (line.x2 * this.scale + this.xOffset), (int) (line.y2 * this.scale + this.yOffset));
         }
 
-        // vehicle direction rencering
+        // vehicle direction rendering
         g2.setStroke(new BasicStroke(4));
         g2.setColor(Color.RED);
         g2.drawLine((int) (vehicle.x * this.scale) + this.xOffset, (int) (vehicle.y * this.scale) + this.yOffset, (int) ((vehicle.x + vehicle.r * Math.cos(vehicle.theta)) * this.scale) + this.xOffset, (int) ((vehicle.y + vehicle.r * Math.sin(vehicle.theta)) * this.scale) + this.yOffset);
