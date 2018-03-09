@@ -160,8 +160,6 @@ public class GeneticAlgorithm {
                 this.doStatistics();
             }
 
-            this.generation++;
-
             // evolvePopulation
             this.evolvePopulation();
             this.generation++;
