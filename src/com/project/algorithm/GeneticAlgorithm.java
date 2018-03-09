@@ -91,6 +91,7 @@ public class GeneticAlgorithm {
                 new Line(2, 4, 2, 5),
                 new Line(1, 1, 2, 1),
                 new Line(0, 2, 1, 2),
+                new Line(1, 3, 1, 4),
                 new Line(1, 3, 3, 3)};
 //Spiral
 //        		new Line(1, 0, 1, 4),

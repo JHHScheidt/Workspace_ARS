@@ -125,7 +125,7 @@ public class VisualSimulator implements  Runnable {
         // indicate which spot of the environment has been visited
         int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
         int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
-        this.environment.grid[environmentX][environmentY] = true;
+        this.environment.grid[environmentX][environmentY]++;
     }
 
     public void start() {

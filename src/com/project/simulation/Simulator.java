@@ -138,7 +138,7 @@ public class Simulator implements Callable<Double> {
         // indicate which spot of the environment has been visited
         int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
         int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
-        this.environment.grid[environmentX][environmentY] = true;
+        this.environment.grid[environmentX][environmentY]++;
     }
 
     public boolean isRunning() {
@@ -150,9 +150,9 @@ public class Simulator implements Callable<Double> {
         this.run();
 
         double fitness = 0;
-        for (boolean[] array : this.environment.grid) {
-            for (boolean value : array) {
-                if (value) fitness += 1;
+        for (int[] array : this.environment.grid) {
+            for (int value : array) {
+                fitness += value*(value>1?-1:1);
             }
         }
 
