@@ -8,6 +8,7 @@ import java.awt.geom.Point2D;
 import java.io.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -21,6 +22,8 @@ public class GeneticAlgorithm {
     private final static boolean ELITISM = true;
     private final static int NN_OUTPUT = 2;
 
+    private ArrayList<Integer> indexPool;
+    private ArrayList<Integer> usedIndices;
     private ArrayList<Individual> individuals;
     private Individual best, worst, allTimeBest;
 
@@ -36,6 +39,8 @@ public class GeneticAlgorithm {
      */
     public GeneticAlgorithm(Controller controller, int numInd, int size) {
         this.controller = controller;
+        this.indexPool = new ArrayList<>();
+        this.usedIndices = new ArrayList<>();
         this.init(numInd, size);
     }
     
@@ -46,6 +51,10 @@ public class GeneticAlgorithm {
             this.individuals = (ArrayList<Individual>) in.readObject();
             this.best = this.individuals.get(0);
             this.worst = this.best;
+            this.indexPool = new ArrayList<>();
+            for (int i = 0; i < this.individuals.size(); i++)
+                this.indexPool.add(i);
+            this.usedIndices = new ArrayList<>();
             this.allTimeBest = this.best;
             this.generation = Integer.parseInt(file.replaceAll("[^0-9]",""));
         } catch(Exception e){
@@ -62,6 +71,7 @@ public class GeneticAlgorithm {
     public void init(int numInd, int size) {
         this.individuals = new ArrayList<>();
         for (int i = 0; i < numInd; i++) {
+            this.indexPool.add(i);
             double[][] tempInput = new double[size][NN_OUTPUT];
             double[][] tempRecur = new double[NN_OUTPUT][NN_OUTPUT];
             for (int j = 0; j < tempInput.length; j++) {
@@ -93,13 +103,13 @@ public class GeneticAlgorithm {
             environments[i] = chosenEnvironment.clone();
         }
 
-        ArrayList<Future<Double>> futures = new ArrayList<>();
-        ArrayList<Simulator> tasks = new ArrayList<>();
+            ArrayList<Future<Double>> futures = new ArrayList<>();
+            ArrayList<Simulator> tasks = new ArrayList<>();
 
-        int numberOfRuns = this.generation;
-        for (int i = (this.generation>0?this.generation:0); i < numberOfRuns+2001; i++) {
-            System.out.println("Starting generation " + this.generation);
-            this.worst = this.best;
+            int numberOfRuns = this.generation;
+            for (int i = (this.generation>0?this.generation:0); i < numberOfRuns+2001; i++) {
+                System.out.println("Starting generation " + this.generation);
+                this.worst = this.best;
 
             for (Individual individual : this.individuals)
                 individual.fitness = 0;
@@ -218,14 +228,17 @@ public class GeneticAlgorithm {
         }
 
         // Mutate population
+        double random;
         for (int i = elitismOffset; i < newPopulation.size(); i++) {
-            if (Controller.RANDOM.nextDouble() >= 0.5) {
+            random = Controller.RANDOM.nextDouble();
+            if (random < 0.333333) {
                 newPopulation.get(i).setInputWeights(randomMutation(newPopulation.get(i).getInputWeights()));
                 newPopulation.get(i).setRecurWeights(randomMutation(newPopulation.get(i).getRecurWeights()));
-            } else {
-                newPopulation.get(i).setInputWeights(exchangeMutation(newPopulation.get(i).getInputWeights()));
-                newPopulation.get(i).setRecurWeights(exchangeMutation(newPopulation.get(i).getRecurWeights()));
             }
+                //            } else if (random < 0.666667) {
+//                newPopulation.get(i).setInputWeights(exchangeMutation(newPopulation.get(i).getInputWeights()));
+//                newPopulation.get(i).setRecurWeights(exchangeMutation(newPopulation.get(i).getRecurWeights()));
+//            }
         }
         this.individuals = newPopulation;
     }
@@ -239,9 +252,17 @@ public class GeneticAlgorithm {
      */
     public Individual tournamentSelection() {
         Individual[] tournament = new Individual[TOURNAMENT_SIZE];
+        int selectedIndex;
         for (int i = 0; i < TOURNAMENT_SIZE; i++) {
-            tournament[i] = this.individuals.get((int) (Controller.RANDOM.nextDouble() * this.individuals.size()));
+            selectedIndex = this.indexPool.remove((int) (Controller.RANDOM.nextDouble() * this.indexPool.size()));
+            this.usedIndices.add(selectedIndex);
+            tournament[i] = this.individuals.get(selectedIndex);
         }
+
+        while (this.usedIndices.size() > 0) {
+            this.indexPool.add(this.usedIndices.remove(0));
+        }
+
         int bestIndex = 0;
         for (int i = 1; i < tournament.length; i++) {
             if (tournament[i].fitness > tournament[bestIndex].fitness) {
@@ -295,7 +316,7 @@ public class GeneticAlgorithm {
         for (int i = 0; i < ind.length; i++) {
             for (int j = 0; j < ind[i].length; j++) {
                 if (Controller.RANDOM.nextDouble() < MUTATION_RATE) {
-                    ind[i][j] += (Controller.RANDOM.nextDouble() - 0.5) * 10;
+                    ind[i][j] += ((Controller.RANDOM.nextDouble() - 0.5) * 0.1) * ind[i][j];
                     if (++mutations > 5) break outerLoop;
                 }
             }

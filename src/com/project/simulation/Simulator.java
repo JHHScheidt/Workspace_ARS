@@ -94,7 +94,7 @@ public class Simulator implements Callable<Double> {
             if (this.visuals) {
                 current = System.currentTimeMillis();
                 if (current - start > 1000 / FPS) {
-                    update(0.05); // step size for the update
+                    update(0.01); // step size for the update
                     this.display.repaint(); // if visuals are enabled we want to repaint
                     start = current;
                 }
@@ -182,7 +182,7 @@ public class Simulator implements Callable<Double> {
         int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
         int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
 
-        if (environmentX != this.previousX && environmentY != this.previousY) {
+//        if (environmentX != this.previousX && environmentY != this.previousY) {
             double ble = this.vehicle.r / this.environment.subdivisionSize;
             int ceil = (int) Math.ceil(ble);
             for (int i = environmentX - ceil; i <= environmentX + ceil; i++) {
@@ -193,10 +193,9 @@ public class Simulator implements Callable<Double> {
                 }
             }
 
-        	this.previousX = environmentX;
-        	this.previousY = environmentY;
-        }
-
+//        	this.previousX = environmentX;
+//        	this.previousY = environmentY;
+//        }
     }
 
     @Override
@@ -207,7 +206,7 @@ public class Simulator implements Callable<Double> {
         for (int[] array : this.environment.grid) {
             for (int value : array) {
                 if (value > 0) fitness += 1;
-                if (value > 1) fitness -= 0.4 * (value - 1);
+                if (value > 1) fitness -= 0.3333 * (value - 1);
             }
         }
 
