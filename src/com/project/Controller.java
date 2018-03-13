@@ -36,7 +36,7 @@ public class Controller {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Controller controller = new Controller(1);
+		Controller controller = new Controller(8);
 		controller.start();
 
 		boolean visualRun = false;

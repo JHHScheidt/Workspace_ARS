@@ -169,12 +169,13 @@ public class Simulator implements Callable<Double> {
         this.vehicle.theta = newTheta;
 
         // store vehicle previous position
-        if (this.timeSincePositionStored > 0.3) {
-        System.out.println(timePassed);
-            this.timeSincePositionStored = 0;
-            if (this.vehicle.pastPositions.size() == 25)
-                this.vehicle.pastPositions.poll();
-            this.vehicle.pastPositions.offer(new Pose(this.vehicle.x, this.vehicle.y, this.vehicle.theta));
+        if (this.visuals) {
+            if (this.timeSincePositionStored > 0.3) {
+                this.timeSincePositionStored = 0;
+                if (this.vehicle.pastPositions.size() == 25)
+                    this.vehicle.pastPositions.poll();
+                this.vehicle.pastPositions.offer(new Pose(this.vehicle.x, this.vehicle.y, this.vehicle.theta));
+            }
         }
 
         // indicate which spot of the environment has been visited
