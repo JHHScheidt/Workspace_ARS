@@ -1,6 +1,9 @@
 package com.project.simulation.environment;
 
+import com.project.simulation.entity.Beacon;
+
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -56,6 +59,7 @@ public class Environment {
 
 	public Line[] obstacles; // all obstacles, the walls for example are all in here
 	public Point2D.Double[] startingLocations;
+	public Beacon[] beacons;
 
 	public double subdivisionSize;
 	public int[][] grid;
@@ -73,6 +77,27 @@ public class Environment {
 		this.subdivisionSize = this.size / subdivisions;
 
 		this.startingLocations = startingLocations;
+
+		ArrayList<Beacon> beacons = new ArrayList<>();
+		for (Line obstacle : obstacles) {
+			beacons.add(new Beacon(obstacle.x1, obstacle.y1));
+			beacons.add(new Beacon(obstacle.x2, obstacle.y2));
+		}
+
+		for (int i = 0; i < beacons.size(); i++) {
+			for (int j = i; j < beacons.size(); j++) {
+				if (i == j) continue;
+
+				if (beacons.get(i).equals(beacons.get(j))) {
+					beacons.remove(j--);
+				}
+			}
+		}
+
+		this.beacons = new Beacon[beacons.size()];
+		for (int i = 0; i < this.beacons.length; i++) {
+			this.beacons[i] = beacons.get(i);
+		}
 	}
 
 	public void reset() {

@@ -1,6 +1,10 @@
 package com.project.simulation.entity;
 
+import com.project.simulation.Pose;
 import com.project.simulation.environment.Line;
+
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * @author Joshua, Simon
@@ -20,8 +24,12 @@ public class Vehicle {
 
     public double maxSpeed = 1;
 
+    public Queue<Pose> pastPositions;
+
     public Vehicle(double x, double y, double r, double sensorRange, double... sensorLocations) {
         this(x, y, r);
+
+        this.pastPositions = new LinkedList<>();
 
         this.sensorLocations = sensorLocations;
         this.sensorRange = sensorRange;
@@ -46,10 +54,10 @@ public class Vehicle {
         for (int i = 0; i < this.sensors.length; i++) { // update locations for the sensors
             sensorAngle = this.sensorLocations[i] + this.theta;
             Line sensor = this.sensors[i];
-            sensor.x1 = this.x;
-            sensor.x2 = this.x + Math.cos(sensorAngle) * (this.sensorRange + this.r);
-            sensor.y1 = this.y;
-            sensor.y2 = this.y + Math.sin(sensorAngle) * (this.sensorRange + this.r);
+            sensor.x1 = this.x + Math.cos(sensorAngle) * this.r;
+            sensor.x2 = this.x + Math.cos(sensorAngle) * this.sensorRange;
+            sensor.y1 = this.y + Math.sin(sensorAngle) * this.r;
+            sensor.y2 = this.y + Math.sin(sensorAngle) * this.sensorRange;
         }
     }
 }

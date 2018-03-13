@@ -6,7 +6,9 @@ import com.project.simulation.entity.Vehicle;
 import com.project.simulation.entity.Sensor;
 import com.project.simulation.environment.Environment;
 import com.project.simulation.environment.Line;
+import com.project.visual.SimulatorDisplay;
 
+import javax.swing.*;
 import java.util.concurrent.Callable;
 
 /**
@@ -14,8 +16,12 @@ import java.util.concurrent.Callable;
  */
 public class Simulator implements Callable<Double> {
 
-    private boolean running; // is the simulation running
-    private long simulationTime;
+    private SimulatorDisplay display; // GUI
+    private boolean visuals;
+
+    private double simulationTime;
+    private double timePassed;
+    private double timeSincePositionStored;
 
     private Environment environment; // the environment the vehicle is exploring
 
@@ -25,7 +31,17 @@ public class Simulator implements Callable<Double> {
 
     public int id;
 
-    public Simulator(int id) {
+    public Simulator(int id, boolean visuals) {
+        this.visuals = visuals;
+        if (this.visuals) {
+            this.display = new SimulatorDisplay(this);
+
+            JFrame frame = new JFrame();
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setContentPane(display);
+            frame.pack();
+            frame.setVisible(true);
+        }
         int sensors = 12; // here we can change the number of sensors
         double[] sensorLocations = new double[sensors];
         for (int i = 0; i < sensors; i++) {
@@ -60,26 +76,38 @@ public class Simulator implements Callable<Double> {
                     minDistanceFound = Math.pow(sensor.x1 - sensor.xIntersect, 2) + Math.pow(sensor.y1 - sensor.yIntersect, 2);
                 }
             }
-            sensor.value = minDistanceFound / maxDistancePossible;
+            sensor.value = Math.sqrt(minDistanceFound) / Math.sqrt(maxDistancePossible);
             vehicle.sensorValues[0][i] = sensor.value;
         }
     }
 
     public void run() {
-        double timePassed = 0;
+        this.timePassed = 0;
         double updateInterval = 0.005;
 
-        this.running = true;
+        long start = System.currentTimeMillis();
+        long current;
+        double FPS = 60; // limit gui to 60 fps
 
-        while (timePassed < this.simulationTime) {
-            update(updateInterval); // step size for the update
-            timePassed += updateInterval;
+
+        while (this.timePassed < this.simulationTime || this.visuals) {
+            if (this.visuals) {
+                current = System.currentTimeMillis();
+                if (current - start > 1000 / FPS) {
+                    update(0.05); // step size for the update
+                    this.display.repaint(); // if visuals are enabled we want to repaint
+                    start = current;
+                }
+            } else {
+                update(updateInterval); // step size for the update
+            }
         }
-
-        this.running = false;
     }
 
     public void update(double delta) {
+        this.timePassed += delta;
+        this.timeSincePositionStored += delta;
+
         double[] activations = this.vehicleNetwork.compute(this.vehicle.sensorValues);
         this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
         this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
@@ -140,14 +168,34 @@ public class Simulator implements Callable<Double> {
         }
         this.vehicle.theta = newTheta;
 
+        // store vehicle previous position
+        if (this.timeSincePositionStored > 0.3) {
+        System.out.println(timePassed);
+            this.timeSincePositionStored = 0;
+            if (this.vehicle.pastPositions.size() == 25)
+                this.vehicle.pastPositions.poll();
+            this.vehicle.pastPositions.offer(new Pose(this.vehicle.x, this.vehicle.y, this.vehicle.theta));
+        }
+
         // indicate which spot of the environment has been visited
         int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
         int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
-        if(environmentX != this.previousX && environmentY != this.previousY) {
-        	this.environment.grid[environmentX][environmentY]++;
+
+        if (environmentX != this.previousX && environmentY != this.previousY) {
+            double ble = this.vehicle.r / this.environment.subdivisionSize;
+            int ceil = (int) Math.ceil(ble);
+            for (int i = environmentX - ceil; i <= environmentX + ceil; i++) {
+                for (int j = environmentY - ceil; j <= environmentY + ceil; j++) {
+                    if (Math.pow(i - environmentX, 2) + Math.pow(j - environmentY, 2) <= ble*ble) {
+                        this.environment.grid[j][i]++;
+                    }
+                }
+            }
+
         	this.previousX = environmentX;
         	this.previousY = environmentY;
         }
+
     }
 
     @Override
@@ -163,5 +211,13 @@ public class Simulator implements Callable<Double> {
         }
 
         return fitness;
+    }
+
+    public Vehicle getVehicle() {
+        return this.vehicle;
+    }
+
+    public Environment getEnvironment() {
+        return this.environment;
     }
 }
