@@ -40,8 +40,8 @@ public class Controller {
 		controller.start();
 
 //		boolean visualRun = true;
-		boolean visualRun = false;
-		if (visualRun) visualRun(Environment.MAZE_JOSHUA, "res/generation30-best.txt");
+		boolean visualRun = true;
+		if (visualRun) visualRun(Environment.MAZE_JOSHUA, "res/all_time_best.txt");
 		else trainingRun(controller, "res/generation30-all.txt");
 
 		controller.stop();

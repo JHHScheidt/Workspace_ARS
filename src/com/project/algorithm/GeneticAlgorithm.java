@@ -312,20 +312,13 @@ public class GeneticAlgorithm {
      */
     public double[][] randomMutation(double[][] ind) {
         int mutations = 0;
+
         while (mutations++ < 5) {
             int i = (int)(Controller.RANDOM.nextDouble() * ind.length);
             int j = (int)(Controller.RANDOM.nextDouble() * ind[0].length);
             ind[i][j] += Controller.RANDOM.nextDouble() * 5 - 2.5;
         }
-//        outerLoop:
-//        for (int i = 0; i < ind.length; i++) { // THIS IS NOT FAIR, FIRST GENES GET MUTATED MORE THAN OTHERS?
-//            for (int j = 0; j < ind[i].length; j++) {
-//                if (Controller.RANDOM.nextDouble() < MUTATION_RATE) {
-////                    ind[i][j] += ((Controller.RANDOM.nextDouble() - 0.5) * 0.1) * ind[i][j];
-//                    if (++mutations > 3) break outerLoop;
-//                }
-//            }
-//        }
+
         return ind;
     }
 
@@ -348,14 +341,6 @@ public class GeneticAlgorithm {
                 System.arraycopy(ind2[i], 0, newInd[i], 0, ind2[i].length);
             }
         }
-
-//        for (int i = 0; i < ind2.length; i++) { // JUST ADDED THE RANDOM MUTATION POINT FOR MORE DIVERSITY
-//            System.arraycopy(ind2[i], 0, newInd[i], 0, ind2[i].length);
-//        }
-//
-//        for (int i = 0; i < ind1.length; i++) {
-//            System.arraycopy(ind1[i], 0, newInd[i], 0, ind1[0].length / 2);
-//        }
 
         return newInd;
     }

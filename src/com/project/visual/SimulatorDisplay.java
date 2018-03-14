@@ -2,6 +2,7 @@ package com.project.visual;
 
 import com.project.simulation.Pose;
 import com.project.simulation.Simulator;
+import com.project.simulation.entity.Beacon;
 import com.project.simulation.environment.Line;
 import com.project.simulation.entity.Vehicle;
 
@@ -66,6 +67,12 @@ public class SimulatorDisplay extends JPanel {
         // obstacle rendering
         for (Line obstacle : this.simulator.getEnvironment().obstacles) {
             g2.drawLine((int) (obstacle.x1 * this.scale + this.xOffset), (int) (obstacle.y1 * this.scale + this.yOffset), (int) (obstacle.x2 * this.scale + this.xOffset), (int) (obstacle.y2 * this.scale + this.yOffset));
+        }
+
+        // beacon rendering
+        g2.setColor(Color.YELLOW);
+        for (Beacon beacon : this.simulator.getEnvironment().beacons) {
+            g2.fillOval((int) ((beacon.x - 0.05) * this.scale + this.xOffset), (int) ((beacon.y - 0.05) * this.scale + this.yOffset), (int) (0.1 * this.scale), (int) (0.1 * this.scale));
         }
     }
 }
