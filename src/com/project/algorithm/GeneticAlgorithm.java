@@ -231,7 +231,7 @@ public class GeneticAlgorithm {
         double random;
         for (int i = elitismOffset; i < newPopulation.size(); i++) {
             random = Controller.RANDOM.nextDouble();
-            if (random < 0.333333) {
+            if (random < MUTATION_RATE) {
                 newPopulation.get(i).setInputWeights(randomMutation(newPopulation.get(i).getInputWeights()));
                 newPopulation.get(i).setRecurWeights(randomMutation(newPopulation.get(i).getRecurWeights()));
             }
@@ -312,15 +312,20 @@ public class GeneticAlgorithm {
      */
     public double[][] randomMutation(double[][] ind) {
         int mutations = 0;
-        outerLoop:
-        for (int i = 0; i < ind.length; i++) {
-            for (int j = 0; j < ind[i].length; j++) {
-                if (Controller.RANDOM.nextDouble() < MUTATION_RATE) {
-                    ind[i][j] += ((Controller.RANDOM.nextDouble() - 0.5) * 0.1) * ind[i][j];
-                    if (++mutations > 5) break outerLoop;
-                }
-            }
+        while (mutations++ < 5) {
+            int i = (int)(Controller.RANDOM.nextDouble() * ind.length);
+            int j = (int)(Controller.RANDOM.nextDouble() * ind[0].length);
+            ind[i][j] += Controller.RANDOM.nextDouble() * 5 - 2.5;
         }
+//        outerLoop:
+//        for (int i = 0; i < ind.length; i++) { // THIS IS NOT FAIR, FIRST GENES GET MUTATED MORE THAN OTHERS?
+//            for (int j = 0; j < ind[i].length; j++) {
+//                if (Controller.RANDOM.nextDouble() < MUTATION_RATE) {
+////                    ind[i][j] += ((Controller.RANDOM.nextDouble() - 0.5) * 0.1) * ind[i][j];
+//                    if (++mutations > 3) break outerLoop;
+//                }
+//            }
+//        }
         return ind;
     }
 
@@ -335,13 +340,22 @@ public class GeneticAlgorithm {
      */
     public double[][] crossover(double[][] ind1, double[][] ind2) {
         double[][] newInd = new double[ind2.length][ind2[0].length];
-        for (int i = 0; i < ind2.length; i++) {
-            System.arraycopy(ind2[i], 0, newInd[i], 0, ind2[i].length);
+        int crossoverPoint = (int)(Controller.RANDOM.nextDouble() * ind1.length);
+        for (int i = 0; i < ind1.length; i++) {
+            if (i < crossoverPoint){
+                System.arraycopy(ind1[i], 0, newInd[i], 0, ind1[i].length);
+            }else{
+                System.arraycopy(ind2[i], 0, newInd[i], 0, ind2[i].length);
+            }
         }
 
-        for (int i = 0; i < ind1.length; i++) {
-            System.arraycopy(ind1[i], 0, newInd[i], 0, ind1[0].length / 2);
-        }
+//        for (int i = 0; i < ind2.length; i++) { // JUST ADDED THE RANDOM MUTATION POINT FOR MORE DIVERSITY
+//            System.arraycopy(ind2[i], 0, newInd[i], 0, ind2[i].length);
+//        }
+//
+//        for (int i = 0; i < ind1.length; i++) {
+//            System.arraycopy(ind1[i], 0, newInd[i], 0, ind1[0].length / 2);
+//        }
 
         return newInd;
     }

@@ -39,9 +39,10 @@ public class Controller {
 		Controller controller = new Controller(8);
 		controller.start();
 
-		boolean visualRun = true;
-		if (visualRun) visualRun(Environment.MAZE_JOSHUA, "res/generation510-best.txt");
-		else trainingRun(controller, "res/updated-fitness/generation500-all.txt");
+//		boolean visualRun = true;
+		boolean visualRun = false;
+		if (visualRun) visualRun(Environment.MAZE_JOSHUA, "res/generation30-best.txt");
+		else trainingRun(controller, "res/generation30-all.txt");
 
 		controller.stop();
 	}

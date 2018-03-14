@@ -83,7 +83,7 @@ public class Simulator implements Callable<Double> {
 
     public void run() {
         this.timePassed = 0;
-        double updateInterval = 0.005;
+        double updateInterval = 0.025;
 
         long start = System.currentTimeMillis();
         long current;
@@ -94,7 +94,7 @@ public class Simulator implements Callable<Double> {
             if (this.visuals) {
                 current = System.currentTimeMillis();
                 if (current - start > 1000 / FPS) {
-                    update(0.01); // step size for the update
+                    update(0.025); // step size for the update
                     this.display.repaint(); // if visuals are enabled we want to repaint
                     start = current;
                 }
