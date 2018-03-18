@@ -11,9 +11,8 @@ import java.util.Queue;
  */
 public class Vehicle {
 
-    public double x, y; // x, y location of the car
     public double r; // distance between center of the car and the wheel, ie 1/2 distance between the wheels
-    public double theta; // rotation of the car
+    public Pose pose;
 
     public double speedLeft, speedRight; // m/s
 
@@ -21,6 +20,7 @@ public class Vehicle {
     public double sensorRange; // range of the sensors
     public Sensor[] sensors; // sensors on the car
     public double[][] sensorValues; // 2 dimensional because of JAMA library requirements
+    public Beacon[] visibleBeacons;
 
     public double maxSpeed = 1;
 
@@ -44,20 +44,29 @@ public class Vehicle {
     }
 
     public Vehicle(double x, double y, double r) {
-        this.x = x;
-        this.y = y;
+        this.pose = new Pose(x,y, 0);
         this.r = r;
     }
 
     public void updateSensors() {
         double sensorAngle;
         for (int i = 0; i < this.sensors.length; i++) { // update locations for the sensors
-            sensorAngle = this.sensorLocations[i] + this.theta;
+            sensorAngle = this.sensorLocations[i] + this.pose.theta;
             Line sensor = this.sensors[i];
-            sensor.x1 = this.x + Math.cos(sensorAngle) * this.r;
-            sensor.x2 = this.x + Math.cos(sensorAngle) * this.sensorRange;
-            sensor.y1 = this.y + Math.sin(sensorAngle) * this.r;
-            sensor.y2 = this.y + Math.sin(sensorAngle) * this.sensorRange;
+            sensor.x1 = this.pose.x + Math.cos(sensorAngle) * this.r;
+            sensor.x2 = this.pose.x + Math.cos(sensorAngle) * this.sensorRange;
+            sensor.y1 = this.pose.y + Math.sin(sensorAngle) * this.r;
+            sensor.y2 = this.pose.y + Math.sin(sensorAngle) * this.sensorRange;
+        }
+    }
+
+    public void updatePosition(){
+        double maxRad = 2 * Math.PI;
+        double angle;
+        double distance;
+        for (Beacon b : visibleBeacons) {
+            angle = (Math.atan2(b.y - this.pose.y, b.x - this.pose.x) + maxRad) % maxRad;
+            distance = b.distance(this);
         }
     }
 }

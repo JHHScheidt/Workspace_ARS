@@ -20,7 +20,7 @@ public class Beacon {
 	}
 
 	public double distance(Vehicle vehicle) {
-		return Math.sqrt(Math.pow(this.x - vehicle.x, 2) + Math.pow(this.y - vehicle.y, 2)) + (Controller.RANDOM.nextGaussian() * STD + MEAN);
+		return Math.sqrt(Math.pow(this.x - vehicle.pose.x, 2) + Math.pow(this.y - vehicle.pose.y, 2)) + (Controller.RANDOM.nextGaussian() * STD + MEAN);
 	}
 
 	@Override

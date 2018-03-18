@@ -41,8 +41,8 @@ public class Line {
 
 		double baX = this.x2 - this.x1;
 		double baY = this.y2 - this.y1;
-		double caX = vehicle.x - this.x1;
-		double caY = vehicle.y - this.y1;
+		double caX = vehicle.pose.x - this.x1;
+		double caY = vehicle.pose.y - this.y1;
 
 		double a = baX * baX + baY * baY;
 		double bBy2 = baX * caX + baY * caY;

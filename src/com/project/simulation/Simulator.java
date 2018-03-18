@@ -27,6 +27,8 @@ public class Simulator implements Callable<Double> {
 
     private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
+    private Pose actualVehiclePose;
+
     private int previousX, previousY;
 
     public int id;
@@ -55,8 +57,8 @@ public class Simulator implements Callable<Double> {
     public void init(Individual individual, Environment environment, double startX, double startY, long simulationTime) {
         this.vehicleNetwork = new NeuralNetwork(individual.getInputWeights(), individual.getRecurWeights());
 
-        this.vehicle.x = startX;
-        this.vehicle.y = startY;
+        this.vehicle.pose.x = startX;
+        this.vehicle.pose.y = startY;
         
         this.previousX = -1;
         this.previousY = -1;
@@ -112,30 +114,33 @@ public class Simulator implements Callable<Double> {
         this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
         this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
 
+        this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
+        this.vehicle.updatePosition();
+
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
             double speed = (this.vehicle.speedLeft + this.vehicle.speedRight) / 2;
-            newX = vehicle.x + delta * speed * Math.cos(this.vehicle.theta);
-            newY = vehicle.y + delta * speed * Math.sin(this.vehicle.theta);
-            newTheta = vehicle.theta;
+            newX = vehicle.pose.x + delta * speed * Math.cos(this.vehicle.pose.theta);
+            newY = vehicle.pose.y + delta * speed * Math.sin(this.vehicle.pose.theta);
+            newTheta = vehicle.pose.theta;
         } else { // calculate the rotation and rotate the car around this point
             double R = this.vehicle.r * (this.vehicle.speedLeft + this.vehicle.speedRight) / (this.vehicle.speedRight - this.vehicle.speedLeft);
             if (this.vehicle.speedRight == - this.vehicle.speedLeft) R = 0;
             if (this.vehicle.speedRight == 0 || this.vehicle.speedLeft == 0) R = this.vehicle.r;
 
-            double ICCX = this.vehicle.x - R * Math.sin(this.vehicle.theta);
-            double ICCY = this.vehicle.y + R * Math.cos(this.vehicle.theta);
+            double ICCX = this.vehicle.pose.x - R * Math.sin(this.vehicle.pose.theta);
+            double ICCY = this.vehicle.pose.y + R * Math.cos(this.vehicle.pose.theta);
             double omega = (this.vehicle.speedRight - this.vehicle.speedLeft) / (2 * this.vehicle.r);
 
-            newX = Math.cos(omega * delta) * (this.vehicle.x - ICCX) - (Math.sin(omega * delta) * (this.vehicle.y - ICCY)) + ICCX;
-            newY = Math.sin(omega * delta) * (this.vehicle.x - ICCX) + (Math.cos(omega * delta) * (this.vehicle.y - ICCY)) + ICCY;
-            newTheta = this.vehicle.theta + omega * delta;
+            newX = Math.cos(omega * delta) * (this.vehicle.pose.x - ICCX) - (Math.sin(omega * delta) * (this.vehicle.pose.y - ICCY)) + ICCX;
+            newY = Math.sin(omega * delta) * (this.vehicle.pose.x - ICCX) + (Math.cos(omega * delta) * (this.vehicle.pose.y - ICCY)) + ICCY;
+            newTheta = this.vehicle.pose.theta + omega * delta;
             newTheta %= Math.PI * 2;
         }
 
-        double oldX = this.vehicle.x, oldY = this.vehicle.y;
-        this.vehicle.x = newX;
-        this.vehicle.y = newY;
+        double oldX = this.vehicle.pose.x, oldY = this.vehicle.pose.y;
+        this.vehicle.pose.x = newX;
+        this.vehicle.pose.y = newY;
 
         this.vehicle.updateSensors(); // update the sensor data to find obstacles and stuff
 
@@ -163,10 +168,10 @@ public class Simulator implements Callable<Double> {
         }
 
         if (collided) {
-            this.vehicle.x = oldX;
-            this.vehicle.y = oldY;
+            this.vehicle.pose.x = oldX;
+            this.vehicle.pose.y = oldY;
         }
-        this.vehicle.theta = newTheta;
+        this.vehicle.pose.theta = newTheta;
 
         // store vehicle previous position
         if (this.visuals) {
@@ -174,13 +179,13 @@ public class Simulator implements Callable<Double> {
                 this.timeSincePositionStored = 0;
                 if (this.vehicle.pastPositions.size() == 25)
                     this.vehicle.pastPositions.poll();
-                this.vehicle.pastPositions.offer(new Pose(this.vehicle.x, this.vehicle.y, this.vehicle.theta));
+                this.vehicle.pastPositions.offer(new Pose(this.vehicle.pose.x, this.vehicle.pose.y, this.vehicle.pose.theta));
             }
         }
 
         // indicate which spot of the environment has been visited
-        int environmentX = (int) (this.vehicle.x / this.environment.subdivisionSize);
-        int environmentY = (int) (this.vehicle.y / this.environment.subdivisionSize);
+        int environmentX = (int) (this.vehicle.pose.x / this.environment.subdivisionSize);
+        int environmentY = (int) (this.vehicle.pose.y / this.environment.subdivisionSize);
 
 //        if (environmentX != this.previousX && environmentY != this.previousY) {
             double ble = this.vehicle.r / this.environment.subdivisionSize;

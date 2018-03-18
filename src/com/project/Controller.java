@@ -13,56 +13,56 @@ import java.util.concurrent.*;
 
 public class Controller {
 
-	public static final Random RANDOM = new Random(15);
+    public static final Random RANDOM = new Random(15);
 
-	private ExecutorService executorService;
-	private int threads;
+    private ExecutorService executorService;
+    private int threads;
 
 
-	public Controller(int threads) {
-		this.threads = threads;
-	}
+    public Controller(int threads) {
+        this.threads = threads;
+    }
 
-	public void start() {
-		this.executorService = Executors.newFixedThreadPool(this.threads);
-	}
+    public void start() {
+        this.executorService = Executors.newFixedThreadPool(this.threads);
+    }
 
-	public void stop() {
-		this.executorService.shutdown();
-	}
+    public void stop() {
+        this.executorService.shutdown();
+    }
 
-	public Future<Double> submit(Callable<Double> callable) {
-		return this.executorService.submit(callable);
-	}
+    public Future<Double> submit(Callable<Double> callable) {
+        return this.executorService.submit(callable);
+    }
 
-	public static void main(String[] args) throws Exception {
-		Controller controller = new Controller(8);
-		controller.start();
+    public static void main(String[] args) throws Exception {
+        Controller controller = new Controller(8);
+        controller.start();
 
 //		boolean visualRun = true;
-		boolean visualRun = true;
-		if (visualRun) visualRun(Environment.MAZE_JOSHUA, "res/all_time_best.txt");
-		else trainingRun(controller, "res/generation30-all.txt");
+        boolean visualRun = true;
+        if (visualRun) visualRun(Environment.MAZE_JOSHUA, "res/all_time_best.txt");
+        else trainingRun(controller, "res/generation30-all.txt");
 
-		controller.stop();
-	}
+        controller.stop();
+    }
 
-	public static void visualRun(Environment environment, String individualPath) throws IOException, ClassNotFoundException {
-            ObjectInputStream in = new ObjectInputStream(new FileInputStream(individualPath));
-            Individual individual = (Individual) in.readObject();
+    public static void visualRun(Environment environment, String individualPath) throws IOException, ClassNotFoundException {
+        ObjectInputStream in = new ObjectInputStream(new FileInputStream(individualPath));
+        Individual individual = (Individual) in.readObject();
 
-            Simulator simulator = new Simulator(0, true);
-            simulator.init(individual, environment, environment.startingLocations[0].x, environment.startingLocations[0].y, 0);
-            simulator.run();
-	}
+        Simulator simulator = new Simulator(0, true);
+        simulator.init(individual, environment, environment.startingLocations[0].x, environment.startingLocations[0].y, 0);
+        simulator.run();
+    }
 
-	public static void trainingRun(Controller controller, String generationPath) throws ExecutionException, InterruptedException {
-		GeneticAlgorithm geneticAlgorithm;
-		if (generationPath == null)
-			geneticAlgorithm = new GeneticAlgorithm(controller, 100, 12);
-		else
-			geneticAlgorithm = new GeneticAlgorithm(controller, 100, 12, generationPath);
+    public static void trainingRun(Controller controller, String generationPath) throws ExecutionException, InterruptedException {
+        GeneticAlgorithm geneticAlgorithm;
+        if (generationPath == null)
+            geneticAlgorithm = new GeneticAlgorithm(controller, 100, 12);
+        else
+            geneticAlgorithm = new GeneticAlgorithm(controller, 100, 12, generationPath);
 
-		geneticAlgorithm.start();
-	}
+        geneticAlgorithm.start();
+    }
 }

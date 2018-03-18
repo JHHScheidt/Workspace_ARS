@@ -49,7 +49,7 @@ public class SimulatorDisplay extends JPanel {
 
         // vehicle rendering
         g2.setColor(Color.BLUE);
-        g2.fillOval((int) ((vehicle.x - vehicle.r) * this.scale) + this.xOffset, (int) ((vehicle.y - vehicle.r) * this.scale) + this.yOffset, (int) (vehicle.r * 2 * this.scale), (int) (vehicle.r * 2 * this.scale));
+        g2.fillOval((int) ((vehicle.pose.x - vehicle.r) * this.scale) + this.xOffset, (int) ((vehicle.pose.y - vehicle.r) * this.scale) + this.yOffset, (int) (vehicle.r * 2 * this.scale), (int) (vehicle.r * 2 * this.scale));
 
         g2.setColor(Color.BLACK);
         // vehicle sensor rendering
@@ -60,7 +60,7 @@ public class SimulatorDisplay extends JPanel {
         // vehicle direction rendering
         g2.setStroke(new BasicStroke(3));
         g2.setColor(Color.RED);
-        g2.drawLine((int) (vehicle.x * this.scale) + this.xOffset, (int) (vehicle.y * this.scale) + this.yOffset, (int) ((vehicle.x + vehicle.r * Math.cos(vehicle.theta)) * this.scale) + this.xOffset, (int) ((vehicle.y + vehicle.r * Math.sin(vehicle.theta)) * this.scale) + this.yOffset);
+        g2.drawLine((int) (vehicle.pose.x * this.scale) + this.xOffset, (int) (vehicle.pose.y * this.scale) + this.yOffset, (int) ((vehicle.pose.x + vehicle.r * Math.cos(vehicle.pose.theta)) * this.scale) + this.xOffset, (int) ((vehicle.pose.y + vehicle.r * Math.sin(vehicle.pose.theta)) * this.scale) + this.yOffset);
         g2.setColor(Color.BLACK);
         g2.setStroke(new BasicStroke(1));
 
