@@ -114,33 +114,30 @@ public class Simulator implements Callable<Double> {
         this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
         this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
 
-        this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
-        this.vehicle.updatePosition();
-
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
             double speed = (this.vehicle.speedLeft + this.vehicle.speedRight) / 2;
-            newX = vehicle.pose.x + delta * speed * Math.cos(this.vehicle.pose.theta);
-            newY = vehicle.pose.y + delta * speed * Math.sin(this.vehicle.pose.theta);
+            newX = vehicle.pose.x + delta * speed * Math.cos(this.actualVehiclePose.theta);
+            newY = vehicle.pose.y + delta * speed * Math.sin(this.actualVehiclePose.theta);
             newTheta = vehicle.pose.theta;
         } else { // calculate the rotation and rotate the car around this point
             double R = this.vehicle.r * (this.vehicle.speedLeft + this.vehicle.speedRight) / (this.vehicle.speedRight - this.vehicle.speedLeft);
             if (this.vehicle.speedRight == - this.vehicle.speedLeft) R = 0;
             if (this.vehicle.speedRight == 0 || this.vehicle.speedLeft == 0) R = this.vehicle.r;
 
-            double ICCX = this.vehicle.pose.x - R * Math.sin(this.vehicle.pose.theta);
-            double ICCY = this.vehicle.pose.y + R * Math.cos(this.vehicle.pose.theta);
+            double ICCX = this.actualVehiclePose.x - R * Math.sin(this.actualVehiclePose.theta);
+            double ICCY = this.actualVehiclePose.y + R * Math.cos(this.actualVehiclePose.theta);
             double omega = (this.vehicle.speedRight - this.vehicle.speedLeft) / (2 * this.vehicle.r);
 
-            newX = Math.cos(omega * delta) * (this.vehicle.pose.x - ICCX) - (Math.sin(omega * delta) * (this.vehicle.pose.y - ICCY)) + ICCX;
-            newY = Math.sin(omega * delta) * (this.vehicle.pose.x - ICCX) + (Math.cos(omega * delta) * (this.vehicle.pose.y - ICCY)) + ICCY;
-            newTheta = this.vehicle.pose.theta + omega * delta;
+            newX = Math.cos(omega * delta) * (this.actualVehiclePose.x - ICCX) - (Math.sin(omega * delta) * (this.actualVehiclePose.y - ICCY)) + ICCX;
+            newY = Math.sin(omega * delta) * (this.actualVehiclePose.x - ICCX) + (Math.cos(omega * delta) * (this.actualVehiclePose.y - ICCY)) + ICCY;
+            newTheta = this.actualVehiclePose.theta + omega * delta;
             newTheta %= Math.PI * 2;
         }
 
-        double oldX = this.vehicle.pose.x, oldY = this.vehicle.pose.y;
-        this.vehicle.pose.x = newX;
-        this.vehicle.pose.y = newY;
+        double oldX = this.actualVehiclePose.x, oldY = this.actualVehiclePose.y;
+        this.actualVehiclePose.x = newX;
+        this.actualVehiclePose.y = newY;
 
         this.vehicle.updateSensors(); // update the sensor data to find obstacles and stuff
 
@@ -168,10 +165,13 @@ public class Simulator implements Callable<Double> {
         }
 
         if (collided) {
-            this.vehicle.pose.x = oldX;
-            this.vehicle.pose.y = oldY;
+            this.actualVehiclePose.x = oldX;
+            this.actualVehiclePose.y = oldY;
         }
-        this.vehicle.pose.theta = newTheta;
+        this.actualVehiclePose.theta = newTheta;
+
+        this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
+        this.vehicle.updatePosition();
 
         // store vehicle previous position
         if (this.visuals) {
