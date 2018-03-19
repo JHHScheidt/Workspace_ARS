@@ -9,4 +9,9 @@ public class Pose {
 		this.y = y;
 		this.theta = theta;
 	}
+
+	@Override
+	public String toString() {
+		return "[Pose x = " + this.x + ", y = " + this.y + ", theta = " + this.theta + "]";
+	}
 }

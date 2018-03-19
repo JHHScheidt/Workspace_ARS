@@ -1,8 +1,11 @@
 package com.project.simulation.entity;
 
+import com.project.Controller;
 import com.project.simulation.Pose;
 import com.project.simulation.environment.Line;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -22,7 +25,7 @@ public class Vehicle {
     public double sensorRange; // range of the sensors
     public Sensor[] sensors; // sensors on the car
     public double[][] sensorValues; // 2 dimensional because of JAMA library requirements
-    public Beacon[] visibleBeacons;
+    public ArrayList<Beacon> visibleBeacons;
 
     public double maxSpeed = 1;
 
@@ -46,7 +49,7 @@ public class Vehicle {
     }
 
     public Vehicle(double x, double y, double r) {
-        this.pose = new Pose(x,y, 0);
+        this.pose = new Pose(x, y, 0);
         this.r = r;
     }
 
@@ -66,15 +69,38 @@ public class Vehicle {
         double maxRad = 2 * Math.PI;
         double angle;
         double distance;
-        for (Beacon b : visibleBeacons) {
-            angle = (Math.atan2(b.y - this.pose.y, b.x - this.pose.x) + maxRad) % maxRad;
-            distance = b.distance(this);
-            // TODO FIX THIS
+
+        // assumes you can see at least 3 beacons
+        Beacon[] selectedBeacons = new Beacon[3];
+        for (int i = 0; i < 3; i++)
+            selectedBeacons[i] = this.visibleBeacons.remove((int) (Controller.RANDOM.nextDouble() * this.visibleBeacons.size()));
+
+        // TODO sort beacons and select them so their angle is biggest
+
+        this.pose.x = 0;
+        this.pose.y = 0;
+        for (int i = 0; i < selectedBeacons.length; i++) {
+            Beacon one = selectedBeacons[i];
+            Beacon two = selectedBeacons[(i + 1) % selectedBeacons.length];
+
+            double d = Math.sqrt(Math.pow(one.x - two.x, 2) + Math.pow(one.y - two.y, 2));
+            double a = (one.distanceToVehicle * one.distanceToVehicle - two.distanceToVehicle * two.distanceToVehicle + d * d) / (2 * d);
+
+            this.pose.x += (one.x + a * (two.x - one.x) / d) / selectedBeacons.length;
+            this.pose.y += (one.y + a * (two.y - one.y) / d) / selectedBeacons.length;
+
         }
+//
+//        double[] angles = new double[3];
+//        for (int i = 0; i < 3; i++)
+//            angles[i] = (Math.atan2(selectedBeacons[i].y - this.pose.y, selectedBeacons[i].x - this.pose.x) + maxRad) % maxRad;
+//
+//        this.triangulate(angles[0], angles[1], angles[2], selectedBeacons[0].x, selectedBeacons[0].y, selectedBeacons[1].x, selectedBeacons[1].y, selectedBeacons[2].x, selectedBeacons[2].y);
+//            distance = b.distance(this);
     }
 
     // There are 3 cases, maybe we need those
-    public void triangulate(double a1, double a2, double a3, double x1, double y1, double x2, double y2, double x3, double y3){
+    private void triangulate(double a1, double a2, double a3, double x1, double y1, double x2, double y2, double x3, double y3){
         double cot12 = bound(1.0 / Math.tan(a2 - a1));
         double cot23 = bound(1.0 / Math.tan(a3 - a2));
         double cot31 = bound(( 1.0 - cot12 * cot23 ) / ( cot12 + cot23 ));

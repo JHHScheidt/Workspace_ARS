@@ -138,11 +138,11 @@ public class Environment {
         return new Environment(this.size, this.subdivisions, lineCopy, this.startingLocations);
     }
 
-    public Beacon[] getVisibleBeacons(double x, double y){ //x and y are the real position of the vehicle
+    public ArrayList<Beacon> getVisibleBeacons(double x, double y){ //x and y are the real position of the vehicle
         ArrayList<Beacon> result = new ArrayList<>();
         boolean intersect;
-        for (int i = 0; i < vehicleBeaconConnections.length; i++) {
-            Line l = vehicleBeaconConnections[i];
+        for (int i = 0; i < this.vehicleBeaconConnections.length; i++) {
+            Line l = this.vehicleBeaconConnections[i];
             l.x1 = x;
             l.y1 = y;
             intersect = false;
@@ -154,6 +154,6 @@ public class Environment {
             }
             if (!intersect) result.add(this.beacons[i]);
         }
-        return (Beacon[]) result.toArray();
+        return result;
     }
 }

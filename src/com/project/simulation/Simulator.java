@@ -2,6 +2,7 @@ package com.project.simulation;
 
 import com.project.algorithm.Individual;
 import com.project.network.NeuralNetwork;
+import com.project.simulation.entity.Beacon;
 import com.project.simulation.entity.Vehicle;
 import com.project.simulation.entity.Sensor;
 import com.project.simulation.environment.Environment;
@@ -50,13 +51,15 @@ public class Simulator implements Callable<Double> {
             sensorLocations[i] = i * (Math.PI * 2) / sensors; // space sensors equally around the car
         }
 
-        this.vehicle = new Vehicle(0.5, 0.5, 0.17, 0.5, sensorLocations);
+        this.actualVehiclePose = new Pose(0.5, 0.5, 0);
+        this.vehicle = new Vehicle(this.actualVehiclePose.x, this.actualVehiclePose.y, 0.17, 0.5, sensorLocations);
         this.id = id;
     }
 
     public void init(Individual individual, Environment environment, double startX, double startY, long simulationTime) {
         this.vehicleNetwork = new NeuralNetwork(individual.getInputWeights(), individual.getRecurWeights());
 
+        this.actualVehiclePose = new Pose(startX, startY, 0);
         this.vehicle.pose.x = startX;
         this.vehicle.pose.y = startY;
         
@@ -113,13 +116,15 @@ public class Simulator implements Callable<Double> {
         double[] activations = this.vehicleNetwork.compute(this.vehicle.sensorValues);
         this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
         this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
+        this.vehicle.speedRight = 0;
+        this.vehicle.speedLeft = 0;
 
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
             double speed = (this.vehicle.speedLeft + this.vehicle.speedRight) / 2;
-            newX = vehicle.pose.x + delta * speed * Math.cos(this.actualVehiclePose.theta);
-            newY = vehicle.pose.y + delta * speed * Math.sin(this.actualVehiclePose.theta);
-            newTheta = vehicle.pose.theta;
+            newX = this.actualVehiclePose.x + delta * speed * Math.cos(this.actualVehiclePose.theta);
+            newY = this.actualVehiclePose.y + delta * speed * Math.sin(this.actualVehiclePose.theta);
+            newTheta = this.actualVehiclePose.theta;
         } else { // calculate the rotation and rotate the car around this point
             double R = this.vehicle.r * (this.vehicle.speedLeft + this.vehicle.speedRight) / (this.vehicle.speedRight - this.vehicle.speedLeft);
             if (this.vehicle.speedRight == - this.vehicle.speedLeft) R = 0;
@@ -158,7 +163,7 @@ public class Simulator implements Callable<Double> {
 
         boolean collided = false; // check if car collided with any of the obstacles in the world
         for (Line obstacle : this.environment.obstacles) {
-            if (obstacle.intersects(this.vehicle)) {
+            if (obstacle.intersects(this.actualVehiclePose, this.vehicle.r)) {
                 collided = true;
                 break;
             }
@@ -171,6 +176,8 @@ public class Simulator implements Callable<Double> {
         this.actualVehiclePose.theta = newTheta;
 
         this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
+        for (Beacon beacon : this.vehicle.visibleBeacons) beacon.updateDistance(this.actualVehiclePose);
+        System.out.println(this.actualVehiclePose);
         this.vehicle.updatePosition();
 
         // store vehicle previous position
@@ -188,15 +195,15 @@ public class Simulator implements Callable<Double> {
         int environmentY = (int) (this.vehicle.pose.y / this.environment.subdivisionSize);
 
 //        if (environmentX != this.previousX && environmentY != this.previousY) {
-            double ble = this.vehicle.r / this.environment.subdivisionSize;
-            int ceil = (int) Math.ceil(ble);
-            for (int i = environmentX - ceil; i <= environmentX + ceil; i++) {
-                for (int j = environmentY - ceil; j <= environmentY + ceil; j++) {
-                    if (Math.pow(i - environmentX, 2) + Math.pow(j - environmentY, 2) <= ble*ble) {
-                        this.environment.grid[j][i]++;
-                    }
-                }
-            }
+//            double ble = this.vehicle.r / this.environment.subdivisionSize;
+//            int ceil = (int) Math.ceil(ble);
+//            for (int i = environmentX - ceil; i <= environmentX + ceil; i++) {
+//                for (int j = environmentY - ceil; j <= environmentY + ceil; j++) {
+//                    if (Math.pow(i - environmentX, 2) + Math.pow(j - environmentY, 2) <= ble*ble) {
+//                        this.environment.grid[j][i]++;
+//                    }
+//                }
+//            }
 
 //        	this.previousX = environmentX;
 //        	this.previousY = environmentY;
