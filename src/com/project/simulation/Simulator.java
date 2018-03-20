@@ -10,6 +10,8 @@ import com.project.simulation.environment.Line;
 import com.project.visual.SimulatorDisplay;
 
 import javax.swing.*;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 
 /**
@@ -29,6 +31,8 @@ public class Simulator implements Callable<Double> {
     private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
     private Pose actualVehiclePose;
+    public Queue<Pose> pastVehiclePositions;
+
 
     private int previousX, previousY;
 
@@ -52,6 +56,7 @@ public class Simulator implements Callable<Double> {
         }
 
         this.actualVehiclePose = new Pose(0.5, 0.5, 0);
+        this.pastVehiclePositions = new LinkedList<>();
         this.vehicle = new Vehicle(this.actualVehiclePose.x, this.actualVehiclePose.y, 0.17, 0.5, sensorLocations);
         this.id = id;
     }
@@ -113,11 +118,50 @@ public class Simulator implements Callable<Double> {
         this.timePassed += delta;
         this.timeSincePositionStored += delta;
 
+        this.updateVehicle(delta);
+
+        // find beacons in vision of
+        this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
+        for (Beacon beacon : this.vehicle.visibleBeacons) beacon.update(this.actualVehiclePose);
+        this.vehicle.predictPosition();
+
+        System.out.println(this.vehicle.pose);
+        System.out.println(this.actualVehiclePose);
+        System.out.println();
+        // store vehicle previous position
+        if (this.visuals) {
+            if (this.timeSincePositionStored > 0.3) {
+                this.timeSincePositionStored = 0;
+                if (this.pastVehiclePositions.size() == 25)
+                    this.pastVehiclePositions.poll();
+                this.pastVehiclePositions.offer(new Pose(this.vehicle.pose.x, this.vehicle.pose.y, this.vehicle.pose.theta));
+            }
+        }
+
+        // indicate which spot of the environment has been visited
+        int environmentX = (int) (this.vehicle.pose.x / this.environment.subdivisionSize);
+        int environmentY = (int) (this.vehicle.pose.y / this.environment.subdivisionSize);
+
+//        if (environmentX != this.previousX && environmentY != this.previousY) {
+//            double ble = this.vehicle.r / this.environment.subdivisionSize;
+//            int ceil = (int) Math.ceil(ble);
+//            for (int i = environmentX - ceil; i <= environmentX + ceil; i++) {
+//                for (int j = environmentY - ceil; j <= environmentY + ceil; j++) {
+//                    if (Math.pow(i - environmentX, 2) + Math.pow(j - environmentY, 2) <= ble*ble) {
+//                        this.environment.grid[j][i]++;
+//                    }
+//                }
+//            }
+
+//        	this.previousX = environmentX;
+//        	this.previousY = environmentY;
+//        }
+    }
+
+    private void updateVehicle(double delta) {
         double[] activations = this.vehicleNetwork.compute(this.vehicle.sensorValues);
         this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
         this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
-        this.vehicle.speedRight = 0;
-        this.vehicle.speedLeft = 0;
 
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
@@ -144,8 +188,18 @@ public class Simulator implements Callable<Double> {
         this.actualVehiclePose.x = newX;
         this.actualVehiclePose.y = newY;
 
-        this.vehicle.updateSensors(); // update the sensor data to find obstacles and stuff
+        // update vehicle sensor positions
+        double sensorAngle;
+        for (int i = 0; i < this.vehicle.sensors.length; i++) { // update locations for the sensors
+            sensorAngle = this.vehicle.sensorLocations[i] + this.actualVehiclePose.theta;
+            Line sensor = this.vehicle.sensors[i];
+            sensor.x1 = this.actualVehiclePose.x + Math.cos(sensorAngle) * this.vehicle.r;
+            sensor.x2 = this.actualVehiclePose.x + Math.cos(sensorAngle) * this.vehicle.sensorRange;
+            sensor.y1 = this.actualVehiclePose.y + Math.sin(sensorAngle) * this.vehicle.r;
+            sensor.y2 = this.actualVehiclePose.y + Math.sin(sensorAngle) * this.vehicle.sensorRange;
+        }
 
+        // update vehicle sensor values
         double minDistanceFound;
         double maxDistancePossible = Math.pow(this.vehicle.sensorRange + vehicle.r, 2);
         Sensor[] sensors = this.vehicle.sensors;
@@ -161,7 +215,8 @@ public class Simulator implements Callable<Double> {
             vehicle.sensorValues[0][i] = sensor.value;
         }
 
-        boolean collided = false; // check if car collided with any of the obstacles in the world
+        // check if car collided with any of the obstacles in the world
+        boolean collided = false;
         for (Line obstacle : this.environment.obstacles) {
             if (obstacle.intersects(this.actualVehiclePose, this.vehicle.r)) {
                 collided = true;
@@ -169,45 +224,12 @@ public class Simulator implements Callable<Double> {
             }
         }
 
+        // if collided don't move
         if (collided) {
             this.actualVehiclePose.x = oldX;
             this.actualVehiclePose.y = oldY;
         }
         this.actualVehiclePose.theta = newTheta;
-
-        this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
-        for (Beacon beacon : this.vehicle.visibleBeacons) beacon.updateDistance(this.actualVehiclePose);
-        System.out.println(this.actualVehiclePose);
-        this.vehicle.updatePosition();
-
-        // store vehicle previous position
-        if (this.visuals) {
-            if (this.timeSincePositionStored > 0.3) {
-                this.timeSincePositionStored = 0;
-                if (this.vehicle.pastPositions.size() == 25)
-                    this.vehicle.pastPositions.poll();
-                this.vehicle.pastPositions.offer(new Pose(this.vehicle.pose.x, this.vehicle.pose.y, this.vehicle.pose.theta));
-            }
-        }
-
-        // indicate which spot of the environment has been visited
-        int environmentX = (int) (this.vehicle.pose.x / this.environment.subdivisionSize);
-        int environmentY = (int) (this.vehicle.pose.y / this.environment.subdivisionSize);
-
-//        if (environmentX != this.previousX && environmentY != this.previousY) {
-//            double ble = this.vehicle.r / this.environment.subdivisionSize;
-//            int ceil = (int) Math.ceil(ble);
-//            for (int i = environmentX - ceil; i <= environmentX + ceil; i++) {
-//                for (int j = environmentY - ceil; j <= environmentY + ceil; j++) {
-//                    if (Math.pow(i - environmentX, 2) + Math.pow(j - environmentY, 2) <= ble*ble) {
-//                        this.environment.grid[j][i]++;
-//                    }
-//                }
-//            }
-
-//        	this.previousX = environmentX;
-//        	this.previousY = environmentY;
-//        }
     }
 
     @Override
@@ -227,6 +249,10 @@ public class Simulator implements Callable<Double> {
 
     public Vehicle getVehicle() {
         return this.vehicle;
+    }
+
+    public Pose getVehiclePose() {
+        return this.actualVehiclePose;
     }
 
     public Environment getEnvironment() {

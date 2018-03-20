@@ -1,6 +1,7 @@
 package com.project.simulation;
 
-public class Pose {
+public class
+Pose {
 
 	public double x, y, theta;
 

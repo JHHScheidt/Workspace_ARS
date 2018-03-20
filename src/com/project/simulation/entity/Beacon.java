@@ -5,15 +5,18 @@ import com.project.simulation.Pose;
 
 public class Beacon {
 
+	public static final double MAX_RAD = 2 * Math.PI;
+
 	private static int nextId = 0;
 
 	private static final double MEAN = 0;
-	private static final double STD = 0;
+	private static final double STD = 0.2;
 
 	public double x, y;
 	public int id;
 
 	public double distanceToVehicle;
+	public double angleToVehicle;
 
 	public Beacon(double x, double y) {
 		this.x = x;
@@ -22,8 +25,9 @@ public class Beacon {
 		this.id = nextId++;
 	}
 
-	public void updateDistance(Pose pose) {
+	public void update(Pose pose) {
 		this.distanceToVehicle = Math.sqrt(Math.pow(this.x - pose.x, 2) + Math.pow(this.y - pose.y, 2)) + (Controller.RANDOM.nextGaussian() * STD + MEAN);
+		this.angleToVehicle = ((Math.atan2(this.y - pose.y, this.x - pose.x) - pose.theta + MAX_RAD) + (Controller.RANDOM.nextGaussian() * STD + MEAN)) % MAX_RAD;
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import com.project.simulation.entity.Vehicle;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
 /**
@@ -17,7 +18,7 @@ public class SimulatorDisplay extends JPanel {
 
     private Simulator simulator;
 
-    private double scale = 200; // pixels to meter
+    private double scale = 180; // pixels to meter
     private int xOffset = 50, yOffset = 50; // pixel offset
 
     private Color transparantFill;
@@ -36,8 +37,10 @@ public class SimulatorDisplay extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         Vehicle vehicle = this.simulator.getVehicle();
+        Pose vehiclePose = this.simulator.getVehiclePose();
         // render previous vehicle positions
-        for (Iterator<Pose> it = vehicle.pastPositions.iterator(); it.hasNext(); ) {
+
+        for (Iterator<Pose> it = this.simulator.pastVehiclePositions.iterator(); it.hasNext(); ) {
             Pose pose = it.next();
 
             g2.setColor(this.transparantFill);
@@ -49,7 +52,7 @@ public class SimulatorDisplay extends JPanel {
 
         // vehicle rendering
         g2.setColor(Color.BLUE);
-        g2.fillOval((int) ((vehicle.pose.x - vehicle.r) * this.scale) + this.xOffset, (int) ((vehicle.pose.y - vehicle.r) * this.scale) + this.yOffset, (int) (vehicle.r * 2 * this.scale), (int) (vehicle.r * 2 * this.scale));
+        g2.fillOval((int) ((vehiclePose.x - vehicle.r) * this.scale) + this.xOffset, (int) ((vehiclePose.y - vehicle.r) * this.scale) + this.yOffset, (int) (vehicle.r * 2 * this.scale), (int) (vehicle.r * 2 * this.scale));
 
         g2.setColor(Color.BLACK);
         // vehicle sensor rendering
@@ -60,7 +63,7 @@ public class SimulatorDisplay extends JPanel {
         // vehicle direction rendering
         g2.setStroke(new BasicStroke(3));
         g2.setColor(Color.RED);
-        g2.drawLine((int) (vehicle.pose.x * this.scale) + this.xOffset, (int) (vehicle.pose.y * this.scale) + this.yOffset, (int) ((vehicle.pose.x + vehicle.r * Math.cos(vehicle.pose.theta)) * this.scale) + this.xOffset, (int) ((vehicle.pose.y + vehicle.r * Math.sin(vehicle.pose.theta)) * this.scale) + this.yOffset);
+        g2.drawLine((int) (vehiclePose.x * this.scale) + this.xOffset, (int) (vehiclePose.y * this.scale) + this.yOffset, (int) ((vehiclePose.x + vehicle.r * Math.cos(vehiclePose.theta)) * this.scale) + this.xOffset, (int) ((vehiclePose.y + vehicle.r * Math.sin(vehiclePose.theta)) * this.scale) + this.yOffset);
         g2.setColor(Color.BLACK);
         g2.setStroke(new BasicStroke(1));
 
