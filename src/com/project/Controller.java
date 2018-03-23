@@ -18,6 +18,9 @@ public class Controller {
     private ExecutorService executorService;
     private int threads;
 
+    public static double nextGaussian(double std) {
+        return Controller.RANDOM.nextGaussian() * std;
+    }
 
     public Controller(int threads) {
         this.threads = threads;
@@ -41,7 +44,7 @@ public class Controller {
 
 //		boolean visualRun = true;
         boolean visualRun = true;
-        if (visualRun) visualRun(Environment.MAZE_JOSHUA, "res/all_time_best.txt");
+        if (visualRun) visualRun(Environment.SPIRAL, "res/all_time_best.txt");
         else trainingRun(controller, "res/generation30-all.txt");
 
         controller.stop();
@@ -52,7 +55,7 @@ public class Controller {
         Individual individual = (Individual) in.readObject();
 
         Simulator simulator = new Simulator(0, true);
-        simulator.init(individual, environment, environment.startingLocations[0].x, environment.startingLocations[0].y, 0);
+        simulator.init(individual, environment, environment.startingLocations[0].x + 0.01, environment.startingLocations[0].y, 0);
         simulator.run();
     }
 

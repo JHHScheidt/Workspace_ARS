@@ -50,6 +50,18 @@ public class SimulatorDisplay extends JPanel {
             g2.drawLine((int) (pose.x * this.scale) + this.xOffset, (int) (pose.y * this.scale) + this.yOffset, (int) ((pose.x + vehicle.r * Math.cos(pose.theta)) * this.scale) + this.xOffset, (int) ((pose.y + vehicle.r * Math.sin(pose.theta)) * this.scale) + this.yOffset);
         }
 
+        // render lines from visible beacons to vehicle
+        if (vehicle.visibleBeacons != null) {
+            g2.setColor(Color.YELLOW);
+            g2.setStroke(new BasicStroke(2));
+            Beacon visibleBeacon;
+            for (int i = 0; i < vehicle.visibleBeacons.size(); i++) {
+                visibleBeacon = vehicle.visibleBeacons.get(i);
+                g2.drawLine((int) (visibleBeacon.x * this.scale) + this.xOffset, (int) (visibleBeacon.y * this.scale) + this.yOffset, (int) (vehiclePose.x * this.scale) + this.xOffset, (int) (vehiclePose.y * this.scale) + this.yOffset);
+            }
+            g2.setStroke(new BasicStroke(1));
+        }
+
         // vehicle rendering
         g2.setColor(Color.BLUE);
         g2.fillOval((int) ((vehiclePose.x - vehicle.r) * this.scale) + this.xOffset, (int) ((vehiclePose.y - vehicle.r) * this.scale) + this.yOffset, (int) (vehicle.r * 2 * this.scale), (int) (vehicle.r * 2 * this.scale));

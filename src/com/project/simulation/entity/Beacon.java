@@ -9,9 +9,6 @@ public class Beacon {
 
 	private static int nextId = 0;
 
-	private static final double MEAN = 0;
-	private static final double STD = 0.2;
-
 	public double x, y;
 	public int id;
 
@@ -26,8 +23,8 @@ public class Beacon {
 	}
 
 	public void update(Pose pose) {
-		this.distanceToVehicle = Math.sqrt(Math.pow(this.x - pose.x, 2) + Math.pow(this.y - pose.y, 2)) + (Controller.RANDOM.nextGaussian() * STD + MEAN);
-		this.angleToVehicle = ((Math.atan2(this.y - pose.y, this.x - pose.x) - pose.theta + MAX_RAD) + (Controller.RANDOM.nextGaussian() * STD + MEAN)) % MAX_RAD;
+		this.distanceToVehicle = Math.sqrt(Math.pow(this.x - pose.x, 2) + Math.pow(this.y - pose.y, 2)) + Controller.nextGaussian(0);
+		this.angleToVehicle = ((Math.atan2(this.y - pose.y, this.x - pose.x) - pose.theta + MAX_RAD) + Controller.nextGaussian(0.1)) % MAX_RAD;
 	}
 
 	@Override

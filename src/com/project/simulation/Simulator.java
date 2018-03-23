@@ -113,7 +113,6 @@ public class Simulator implements Callable<Double> {
             }
         }
     }
-
     public void update(double delta) {
         this.timePassed += delta;
         this.timeSincePositionStored += delta;
@@ -123,11 +122,9 @@ public class Simulator implements Callable<Double> {
         // find beacons in vision of
         this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
         for (Beacon beacon : this.vehicle.visibleBeacons) beacon.update(this.actualVehiclePose);
-        this.vehicle.predictPosition();
+        this.vehicle.pose.theta = this.actualVehiclePose.theta;
+        this.vehicle.predictPosition(delta);
 
-        System.out.println(this.vehicle.pose);
-        System.out.println(this.actualVehiclePose);
-        System.out.println();
         // store vehicle previous position
         if (this.visuals) {
             if (this.timeSincePositionStored > 0.3) {
@@ -160,8 +157,7 @@ public class Simulator implements Callable<Double> {
 
     private void updateVehicle(double delta) {
         double[] activations = this.vehicleNetwork.compute(this.vehicle.sensorValues);
-        this.vehicle.speedLeft = activations[0] * vehicle.maxSpeed;
-        this.vehicle.speedRight = activations[1] * vehicle.maxSpeed;
+//        this.vehicle.setMotorInput(activations[0], activations[1]);
 
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
