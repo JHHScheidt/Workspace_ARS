@@ -46,7 +46,6 @@ public class Vehicle {
     public Vehicle(double x, double y, double r) {
         this.pose = new Pose(x, y, 0);
         this.r = r;
-        this.speedLeft = -0.1;
         this.Mu = new Matrix(new double[][]{
                 {this.pose.x},
                 {this.pose.y},
@@ -76,246 +75,51 @@ public class Vehicle {
     }
 
     public void predictPosition(double dt) {
-        double a1 = 0.1;
-        double a2 = 0.1;
-        double a3 = 0.01;
-        double a4 = 0.1;
-        double EPS = 1e-4;
-
-        double v = (this.speedLeft + this.speedRight) / 2;
-        double w = (this.speedRight - this.speedLeft) / (2 * this.r);
-        Matrix muBar;
-
-        Matrix G = new Matrix(3,3);
-        Matrix V = new Matrix(3,2);
-        Matrix M = new Matrix(2,2);
-        Matrix MUBAR = new Matrix(3,1);
-        Matrix SIGMABAR = new Matrix(3,3);
-        Matrix ZHAT = new Matrix(2,1);
-        Matrix Z = new Matrix(2,1);
-        Matrix H = new Matrix(2,3);
-        Matrix S = new Matrix(2,2);
-        Matrix Q = new Matrix(2,2);
-        Matrix K = new Matrix(3,2);
-        Matrix I = new Matrix(3,3);
-
-        G.set(0,0, 1);
-        G.set(1,1, 1);
-        G.set(2,2, 1);
-
-        I.set(0,0, 1);
-        I.set(1,1, 1);
-        I.set(2,2, 1);
-
-        M.set(0,0, Math.pow(a1*Math.abs(v) + a2 * Math.abs(v), 2));
-        M.set(1,1, Math.pow(a3*Math.abs(v) + a4 * Math.abs(v), 2));
-
-        double sinTheta = Math.sin(this.pose.theta);
-        double cosTheta = Math.cos(this.pose.theta);
-
-        if (Math.abs(w) > EPS){
-            double vOverW = v / w;
-            double omegaDeltaT = w * dt;
-            double sinThetaOmegaDt = Math.sin(this.pose.theta + omegaDeltaT);
-
-            double cosThetaOmegaDt = Math.cos(this.pose.theta + omegaDeltaT);
-
-            G.set(0,2, -vOverW * cosTheta + (vOverW * cosThetaOmegaDt));
-            G.set(1,2, -vOverW * sinTheta + (vOverW * sinThetaOmegaDt));
-
-            V.set(0,0,(-sinTheta + sinThetaOmegaDt) / w);
-            V.set(1,0,(cosTheta - cosThetaOmegaDt) / w);
-            V.set(0,1,((v * (sinTheta - sinThetaOmegaDt)) / (w * w)) + ((v * cosThetaOmegaDt * dt) / w));
-            V.set(1,1, (-(v * (cosTheta - cosThetaOmegaDt)) / (w * w)) + ((v * sinThetaOmegaDt * dt) / w));
-            V.set(2,0,0);
-            V.set(2,1,dt);
-
-            MUBAR.set(0,0, this.Mu.get(0,0) - (vOverW*sinTheta) + (vOverW*sinThetaOmegaDt));
-            MUBAR.set(1,0, this.Mu.get(1,0) + (vOverW*cosTheta) - (vOverW*cosThetaOmegaDt));
-            MUBAR.set(2,0, this.Mu.get(2,0) + w*dt);
-        }else {
-            G.set(0, 2, -v * sinTheta * dt);
-            G.set(1, 2, v * cosTheta * dt);
-
-            V.set(0, 0, cosTheta * dt);
-            V.set(1, 0, sinTheta * dt);
-            V.set(0, 1, -v * sinTheta * dt * dt * 0.5);
-            V.set(1, 1, v * cosTheta * dt * dt * 0.5);
-            V.set(2, 0, 0);
-            V.set(2, 1, dt);
-
-            MUBAR.set(0, 0, this.Mu.get(0, 0) + v * cosTheta * dt);
-            MUBAR.set(1, 0, this.Mu.get(1, 0) + v * sinTheta * dt);
-            MUBAR.set(2, 0, this.Mu.get(2, 0));
-        }
-        SIGMABAR = G.times(this.Sigma).times(G.transpose()).plus(V.times(M).times(V.transpose()));
-
-        for(int i = 0; i < this.visibleBeacons.size(); i++){
-            Beacon b = this.visibleBeacons.get(i);
-            Z.set(0,0, b.distanceToVehicle);
-            Z.set(1,0, b.angleToVehicle);
-
-            if (Math.abs(b.distanceToVehicle) > EPS){
-                double[] distAngle = estimateDistanceAngle(b, Mu.get(0,0), Mu.get(1,0), Mu.get(2,0));
-                ZHAT.set(0,0, distAngle[0]);
-                ZHAT.set(1,0, distAngle[1]);
-
-                H.set(0,0, -(b.x - Mu.get(0,0))/distAngle[0]);
-                H.set(0,1, -(b.y - Mu.get(1,0))/distAngle[0]);
-                H.set(0,2, 0);
-
-                H.set(1,0, (b.y - Mu.get(1,0))/(distAngle[0]*distAngle[0]));
-                H.set(1,1, -(b.x - Mu.get(0,0))/(distAngle[0]*distAngle[0]));
-                H.set(1,2, -1);
-
-                Q.set(0,0, Math.pow(b.distanceToVehicle * 0.1, 2));
-                Q.set(1,1, Math.pow(0.02, 2));
-
-                S = H.times(SIGMABAR).times(H.transpose()).plus(Q);
-
-                K = SIGMABAR.times(H.transpose()).times(S.inverse());
-                MUBAR = MUBAR.plus(K.times(Z.minus(ZHAT)));
-                SIGMABAR = (I.minus(K.times(H))).times(SIGMABAR);
-
-                MUBAR.set(2,0, constrain_angle(MUBAR.get(2,0)));
-            }
-
-            this.Mu = MUBAR;
-            this.Sigma = SIGMABAR;
-        }
-
-//        double vOverW = v / w;
-//        double omegaDeltaT = w * dt;
-//        G = new Matrix(new double[][]{
-//                {1, 0, -vOverW * Math.cos(this.pose.theta) + (vOverW * Math.cos(this.pose.theta + omegaDeltaT))},
-//                {0, 1, -vOverW * Math.sin(this.pose.theta) + (vOverW * Math.sin(this.pose.theta + omegaDeltaT))},
-//                {0, 0, 1}});
-//
-//        double sinThetaOmegaDt = Math.sin(this.pose.theta + omegaDeltaT);
-//        double sinTheta = Math.sin(this.pose.theta);
-//
-//        double cosThetaOmegaDt = Math.cos(this.pose.theta + omegaDeltaT);
-//        double cosTheta = Math.cos(this.pose.theta);
-//
-//        V = new Matrix(new double[][]{
-//                {(-sinTheta + sinThetaOmegaDt) / w, ((v * (sinTheta - sinThetaOmegaDt)) / (w * w)) + ((v * cosThetaOmegaDt * dt) / w)},
-//                {(cosTheta - cosThetaOmegaDt) / w, (-(v * (cosTheta - cosThetaOmegaDt)) / (w * w)) + ((v * sinThetaOmegaDt * dt) / w)},
-//                {0, dt}});
-//
-//        if (w == 0) {
-//            muBar = this.Mu.plus(new Matrix(new double[][]{
-//                    {this.pose.x + dt * v * Math.cos(this.pose.theta)},
-//                    {this.pose.y + dt * v * Math.sin(this.pose.theta)},
-//                    {this.pose.theta}}));
-//        } else {
-//            Matrix odometry = new Matrix(new double[][]{
-//                    {-vOverW * Math.sin(this.pose.theta) + (vOverW * Math.sin(this.pose.theta + omegaDeltaT))},
-//                    {vOverW * Math.cos(this.pose.theta) - (vOverW * Math.cos(this.pose.theta + omegaDeltaT))},
-//                    {omegaDeltaT}});
-//            muBar = this.Mu.plus(odometry);
-//        }
-//
-//
-//        Matrix sigmaBar = G.times(this.Sigma).times(G.transpose()).plus(this.R);
-//        Matrix[] Ks = new Matrix[this.visibleBeacons.size()];
-//        Matrix[] Hs = new Matrix[this.visibleBeacons.size()];
-//        Matrix[] zHats = new Matrix[this.visibleBeacons.size()];
-//        Matrix delta;
-//        double q, sqrtQ;
-//
-//
-//        for (int i = 0; i < this.visibleBeacons.size(); i++) {
-//            Beacon beacon = this.visibleBeacons.get(i);
-//            delta = new Matrix(new double[][]{
-//                    {beacon.x - this.Mu.get(0, 0)},
-//                    {beacon.y - this.Mu.get(1, 0)}});
-//            q = delta.transpose().times(delta).get(0, 0);
-//            sqrtQ = Math.sqrt(q);
-//            zHats[i] = new Matrix(new double[][]{
-//                    {sqrtQ},
-//                    {Math.atan2(delta.get(1, 0), delta.get(0, 0)) - muBar.get(2, 0)},
-//                    {beacon.id}});
-////            Hs[i] = new Matrix(new double[][] {
-////                    {sqrtQ * delta.get(0, 0), -sqrtQ * delta.get(1, 0), 0},
-////                    {delta.get(1, 0), delta.get(0, 0), -1},
-////                    {0, 0, 0}}).times(1/q);
-//            Hs[i] = new Matrix(new double[][]{
-//                    {-delta.get(0, 0) / sqrtQ, -delta.get(1, 0) / sqrtQ, 0},
-//                    {delta.get(1, 0) / q, -delta.get(0, 0) / q, -1},
-//                    {0, 0, 0}});
-//            Ks[i] = sigmaBar.times(Hs[i].transpose()).times(Hs[i].times(sigmaBar).times(Hs[i].transpose()).plus(this.Q).inverse());
-//        }
-//
-//        Matrix KSummed = new Matrix(new double[][]{
-//                {0},
-//                {0},
-//                {0}});
-//        Matrix KHSummed = new Matrix(new double[][]{
-//                {0, 0, 0},
-//                {0, 0, 0},
-//                {0, 0, 0}});
-//        for (int i = 0; i < this.visibleBeacons.size(); i++) {
-//            Matrix zDifference = new Matrix(new double[][]{
-//                    {this.visibleBeacons.get(i).distanceToVehicle},
-//                    {this.visibleBeacons.get(i).angleToVehicle},
-//                    {this.visibleBeacons.get(i).id}}).minus(zHats[i]);
-//            KSummed.plusEquals(Ks[i].times(zDifference));
-//            printMatrix(Ks[i]);
-//
-//            KHSummed.plusEquals(Ks[i].times(Hs[i]));
-//        }
-//
-////        System.out.println("yo");
-////        this.printMatrix(this.Mu);
-//        this.Sigma = this.I.minus(KHSummed).times(sigmaBar);
-//        this.Mu = muBar.plus(KSummed);
-////        this.printMatrix(this.Mu);
-////        System.out.println("no");
 
 
         // assumes you can see at least 3 beacons
 
-//        double prevX = this.pose.x;
-//        double prevY = this.pose.y;
-//        double prevTheta = this.pose.theta;
-//        this.triangulate(this.visibleBeacons.get(0).angleToVehicle, this.visibleBeacons.get(1).angleToVehicle, this.visibleBeacons.get(2).angleToVehicle, this.visibleBeacons.get(0).x, this.visibleBeacons.get(0).y, this.visibleBeacons.get(1).x, this.visibleBeacons.get(1).y, this.visibleBeacons.get(2).x, this.visibleBeacons.get(2).y);
-////        this.pose.x += Controller.nextGaussian(0.25);
-////        this.pose.y += Controller.nextGaussian(0.25);
-////        this.pose.theta += Controller.nextGaussian(0.1);
-//
-////        this.pose.theta = (Math.atan2(prevY - pose.y, prevX - pose.x) + Math.PI) % Beacon.MAX_RAD;
-//
-//        // kalman shit
-//        double deltaTheta = (this.pose.theta - prevTheta);
-//        if (deltaTheta > Math.PI) deltaTheta -= Math.PI * 2;
-//        else if (delta < -Math.PI) delta += Math.PI * 2;
-//
-//        double velocity = Math.sqrt(Math.pow(this.pose.y - prevY, 2) + Math.pow(this.pose.x - prevX, 2)) / delta;
-//        double angularVelocity = deltaTheta / delta;
-//
-//        Matrix zt = new Matrix(new double[][]{
-//                {this.pose.x},
-//                {this.pose.y},
-//                {this.pose.theta}});
-//        Matrix ut = new Matrix(new double[][] {
-//                {velocity},
-//                {angularVelocity}});
-//
-//        this.B.set(0, 0, delta * Math.cos(this.pose.theta));
-//        this.B.set(1, 0, delta * Math.sin(this.pose.theta));
-//        this.B.set(2, 1, delta);
-//
-//        Matrix MuPredict = this.A.times(this.Mu).plus(this.B.times(ut));
-//        Matrix SigmaPredict = this.A.times(this.Sigma).times(this.A.transpose()).plus(this.R);
-//
-//        Matrix Kt = SigmaPredict.times(this.C.transpose()).times(this.C.times(SigmaPredict).times(this.C.transpose()).plus(this.Q).inverse());
-//        this.Mu = MuPredict.plus(Kt.times(zt.minus(this.C.times(MuPredict))));
-//        this.Sigma = I.minus(Kt.times(this.C)).times(SigmaPredict);
+        double prevX = this.pose.x;
+        double prevY = this.pose.y;
+        double prevTheta = this.pose.theta;
+        this.triangulate(this.visibleBeacons.get(0).angleToVehicle, this.visibleBeacons.get(1).angleToVehicle, this.visibleBeacons.get(2).angleToVehicle, this.visibleBeacons.get(0).x, this.visibleBeacons.get(0).y, this.visibleBeacons.get(1).x, this.visibleBeacons.get(1).y, this.visibleBeacons.get(2).x, this.visibleBeacons.get(2).y);
+//        this.pose.x += Controller.nextGaussian(0.25);
+//        this.pose.y += Controller.nextGaussian(0.25);
+//        this.pose.theta += Controller.nextGaussian(0.1);
 
-//        System.out.println(this.pose.x + " " + this.Mu.get(0, 0));
-//        System.out.println(this.pose.y + " " + this.Mu.get(1, 0));
-//        System.out.println(this.pose.theta + " " + this.Mu.get(2, 0));
-//        System.out.println();
+//        this.pose.theta = (Math.atan2(prevY - pose.y, prevX - pose.x) + Math.PI) % Beacon.MAX_RAD;
+
+        // kalman shit
+        double deltaTheta = (this.pose.theta - prevTheta);
+        if (deltaTheta > Math.PI) deltaTheta -= Math.PI * 2;
+        else if (deltaTheta < -Math.PI) deltaTheta += Math.PI * 2;
+
+        double velocity = Math.sqrt(Math.pow(this.pose.y - prevY, 2) + Math.pow(this.pose.x - prevX, 2)) / dt;
+        double angularVelocity = deltaTheta / dt;
+
+        Matrix zt = new Matrix(new double[][]{
+                {this.pose.x},
+                {this.pose.y},
+                {this.pose.theta}});
+        Matrix ut = new Matrix(new double[][] {
+                {velocity},
+                {angularVelocity}});
+
+        this.B.set(0, 0, dt * Math.cos(this.pose.theta));
+        this.B.set(1, 0, dt * Math.sin(this.pose.theta));
+        this.B.set(2, 1, dt);
+
+        Matrix MuPredict = this.A.times(this.Mu).plus(this.B.times(ut));
+        Matrix SigmaPredict = this.A.times(this.Sigma).times(this.A.transpose()).plus(this.R);
+
+        Matrix Kt = SigmaPredict.times(this.C.transpose()).times(this.C.times(SigmaPredict).times(this.C.transpose()).plus(this.Q).inverse());
+        this.Mu = MuPredict.plus(Kt.times(zt.minus(this.C.times(MuPredict))));
+        this.Sigma = I.minus(Kt.times(this.C)).times(SigmaPredict);
+
+        System.out.println(this.pose.x + " " + this.Mu.get(0, 0));
+        System.out.println(this.pose.y + " " + this.Mu.get(1, 0));
+        System.out.println(this.pose.theta + " " + this.Mu.get(2, 0));
+        System.out.println();
 
         this.pose.x = this.Mu.get(0, 0);
         this.pose.y = this.Mu.get(1, 0);
@@ -410,4 +214,201 @@ public class Vehicle {
 
         return radian;
     }
+
+//    double a1 = 0.1;
+//    double a2 = 0.1;
+//    double a3 = 0.01;
+//    double a4 = 0.1;
+//    double EPS = 1e-4;
+//
+//    double v = (this.speedLeft + this.speedRight) / 2;
+//    double w = (this.speedRight - this.speedLeft) / (2 * this.r);
+//    Matrix muBar;
+//
+//    Matrix G = new Matrix(3,3);
+//    Matrix V = new Matrix(3,2);
+//    Matrix M = new Matrix(2,2);
+//    Matrix MUBAR = new Matrix(3,1);
+//    Matrix SIGMABAR = new Matrix(3,3);
+//    Matrix ZHAT = new Matrix(2,1);
+//    Matrix Z = new Matrix(2,1);
+//    Matrix H = new Matrix(2,3);
+//    Matrix S = new Matrix(2,2);
+//    Matrix Q = new Matrix(2,2);
+//    Matrix K = new Matrix(3,2);
+//    Matrix I = new Matrix(3,3);
+//
+//        G.set(0,0, 1);
+//        G.set(1,1, 1);
+//        G.set(2,2, 1);
+//
+//        I.set(0,0, 1);
+//        I.set(1,1, 1);
+//        I.set(2,2, 1);
+//
+//        M.set(0,0, Math.pow(a1*Math.abs(v) + a2 * Math.abs(v), 2));
+//        M.set(1,1, Math.pow(a3*Math.abs(v) + a4 * Math.abs(v), 2));
+//
+//    double sinTheta = Math.sin(this.pose.theta);
+//    double cosTheta = Math.cos(this.pose.theta);
+//
+//        if (Math.abs(w) > EPS){
+//        double vOverW = v / w;
+//        double omegaDeltaT = w * dt;
+//        double sinThetaOmegaDt = Math.sin(this.pose.theta + omegaDeltaT);
+//
+//        double cosThetaOmegaDt = Math.cos(this.pose.theta + omegaDeltaT);
+//
+//        G.set(0,2, -vOverW * cosTheta + (vOverW * cosThetaOmegaDt));
+//        G.set(1,2, -vOverW * sinTheta + (vOverW * sinThetaOmegaDt));
+//
+//        V.set(0,0,(-sinTheta + sinThetaOmegaDt) / w);
+//        V.set(1,0,(cosTheta - cosThetaOmegaDt) / w);
+//        V.set(0,1,((v * (sinTheta - sinThetaOmegaDt)) / (w * w)) + ((v * cosThetaOmegaDt * dt) / w));
+//        V.set(1,1, (-(v * (cosTheta - cosThetaOmegaDt)) / (w * w)) + ((v * sinThetaOmegaDt * dt) / w));
+//        V.set(2,0,0);
+//        V.set(2,1,dt);
+//
+//        MUBAR.set(0,0, this.Mu.get(0,0) - (vOverW*sinTheta) + (vOverW*sinThetaOmegaDt));
+//        MUBAR.set(1,0, this.Mu.get(1,0) + (vOverW*cosTheta) - (vOverW*cosThetaOmegaDt));
+//        MUBAR.set(2,0, this.Mu.get(2,0) + w*dt);
+//    }else {
+//        G.set(0, 2, -v * sinTheta * dt);
+//        G.set(1, 2, v * cosTheta * dt);
+//
+//        V.set(0, 0, cosTheta * dt);
+//        V.set(1, 0, sinTheta * dt);
+//        V.set(0, 1, -v * sinTheta * dt * dt * 0.5);
+//        V.set(1, 1, v * cosTheta * dt * dt * 0.5);
+//        V.set(2, 0, 0);
+//        V.set(2, 1, dt);
+//
+//        MUBAR.set(0, 0, this.Mu.get(0, 0) + v * cosTheta * dt);
+//        MUBAR.set(1, 0, this.Mu.get(1, 0) + v * sinTheta * dt);
+//        MUBAR.set(2, 0, this.Mu.get(2, 0));
+//    }
+//    SIGMABAR = G.times(this.Sigma).times(G.transpose()).plus(V.times(M).times(V.transpose()));
+//
+//        for(int i = 0; i < this.visibleBeacons.size(); i++){
+//        Beacon b = this.visibleBeacons.get(i);
+//        Z.set(0,0, b.distanceToVehicle);
+//        Z.set(1,0, b.angleToVehicle);
+//
+//        if (Math.abs(b.distanceToVehicle) > EPS){
+//            double[] distAngle = estimateDistanceAngle(b, Mu.get(0,0), Mu.get(1,0), Mu.get(2,0));
+//            ZHAT.set(0,0, distAngle[0]);
+//            ZHAT.set(1,0, distAngle[1]);
+//
+//            H.set(0,0, -(b.x - Mu.get(0,0))/distAngle[0]);
+//            H.set(0,1, -(b.y - Mu.get(1,0))/distAngle[0]);
+//            H.set(0,2, 0);
+//
+//            H.set(1,0, (b.y - Mu.get(1,0))/(distAngle[0]*distAngle[0]));
+//            H.set(1,1, -(b.x - Mu.get(0,0))/(distAngle[0]*distAngle[0]));
+//            H.set(1,2, -1);
+//
+//            Q.set(0,0, Math.pow(b.distanceToVehicle * 0.1, 2));
+//            Q.set(1,1, Math.pow(0.02, 2));
+//
+//            S = H.times(SIGMABAR).times(H.transpose()).plus(Q);
+//
+//            K = SIGMABAR.times(H.transpose()).times(S.inverse());
+//            MUBAR = MUBAR.plus(K.times(Z.minus(ZHAT)));
+//            SIGMABAR = (I.minus(K.times(H))).times(SIGMABAR);
+//
+//            MUBAR.set(2,0, constrain_angle(MUBAR.get(2,0)));
+//        }
+//
+//        this.Mu = MUBAR;
+//        this.Sigma = SIGMABAR;
+//    }
+//
+////        double vOverW = v / w;
+////        double omegaDeltaT = w * dt;
+////        G = new Matrix(new double[][]{
+////                {1, 0, -vOverW * Math.cos(this.pose.theta) + (vOverW * Math.cos(this.pose.theta + omegaDeltaT))},
+////                {0, 1, -vOverW * Math.sin(this.pose.theta) + (vOverW * Math.sin(this.pose.theta + omegaDeltaT))},
+////                {0, 0, 1}});
+////
+////        double sinThetaOmegaDt = Math.sin(this.pose.theta + omegaDeltaT);
+////        double sinTheta = Math.sin(this.pose.theta);
+////
+////        double cosThetaOmegaDt = Math.cos(this.pose.theta + omegaDeltaT);
+////        double cosTheta = Math.cos(this.pose.theta);
+////
+////        V = new Matrix(new double[][]{
+////                {(-sinTheta + sinThetaOmegaDt) / w, ((v * (sinTheta - sinThetaOmegaDt)) / (w * w)) + ((v * cosThetaOmegaDt * dt) / w)},
+////                {(cosTheta - cosThetaOmegaDt) / w, (-(v * (cosTheta - cosThetaOmegaDt)) / (w * w)) + ((v * sinThetaOmegaDt * dt) / w)},
+////                {0, dt}});
+////
+////        if (w == 0) {
+////            muBar = this.Mu.plus(new Matrix(new double[][]{
+////                    {this.pose.x + dt * v * Math.cos(this.pose.theta)},
+////                    {this.pose.y + dt * v * Math.sin(this.pose.theta)},
+////                    {this.pose.theta}}));
+////        } else {
+////            Matrix odometry = new Matrix(new double[][]{
+////                    {-vOverW * Math.sin(this.pose.theta) + (vOverW * Math.sin(this.pose.theta + omegaDeltaT))},
+////                    {vOverW * Math.cos(this.pose.theta) - (vOverW * Math.cos(this.pose.theta + omegaDeltaT))},
+////                    {omegaDeltaT}});
+////            muBar = this.Mu.plus(odometry);
+////        }
+////
+////
+////        Matrix sigmaBar = G.times(this.Sigma).times(G.transpose()).plus(this.R);
+////        Matrix[] Ks = new Matrix[this.visibleBeacons.size()];
+////        Matrix[] Hs = new Matrix[this.visibleBeacons.size()];
+////        Matrix[] zHats = new Matrix[this.visibleBeacons.size()];
+////        Matrix delta;
+////        double q, sqrtQ;
+////
+////
+////        for (int i = 0; i < this.visibleBeacons.size(); i++) {
+////            Beacon beacon = this.visibleBeacons.get(i);
+////            delta = new Matrix(new double[][]{
+////                    {beacon.x - this.Mu.get(0, 0)},
+////                    {beacon.y - this.Mu.get(1, 0)}});
+////            q = delta.transpose().times(delta).get(0, 0);
+////            sqrtQ = Math.sqrt(q);
+////            zHats[i] = new Matrix(new double[][]{
+////                    {sqrtQ},
+////                    {Math.atan2(delta.get(1, 0), delta.get(0, 0)) - muBar.get(2, 0)},
+////                    {beacon.id}});
+//////            Hs[i] = new Matrix(new double[][] {
+//////                    {sqrtQ * delta.get(0, 0), -sqrtQ * delta.get(1, 0), 0},
+//////                    {delta.get(1, 0), delta.get(0, 0), -1},
+//////                    {0, 0, 0}}).times(1/q);
+////            Hs[i] = new Matrix(new double[][]{
+////                    {-delta.get(0, 0) / sqrtQ, -delta.get(1, 0) / sqrtQ, 0},
+////                    {delta.get(1, 0) / q, -delta.get(0, 0) / q, -1},
+////                    {0, 0, 0}});
+////            Ks[i] = sigmaBar.times(Hs[i].transpose()).times(Hs[i].times(sigmaBar).times(Hs[i].transpose()).plus(this.Q).inverse());
+////        }
+////
+////        Matrix KSummed = new Matrix(new double[][]{
+////                {0},
+////                {0},
+////                {0}});
+////        Matrix KHSummed = new Matrix(new double[][]{
+////                {0, 0, 0},
+////                {0, 0, 0},
+////                {0, 0, 0}});
+////        for (int i = 0; i < this.visibleBeacons.size(); i++) {
+////            Matrix zDifference = new Matrix(new double[][]{
+////                    {this.visibleBeacons.get(i).distanceToVehicle},
+////                    {this.visibleBeacons.get(i).angleToVehicle},
+////                    {this.visibleBeacons.get(i).id}}).minus(zHats[i]);
+////            KSummed.plusEquals(Ks[i].times(zDifference));
+////            printMatrix(Ks[i]);
+////
+////            KHSummed.plusEquals(Ks[i].times(Hs[i]));
+////        }
+////
+//////        System.out.println("yo");
+//////        this.printMatrix(this.Mu);
+////        this.Sigma = this.I.minus(KHSummed).times(sigmaBar);
+////        this.Mu = muBar.plus(KSummed);
+//////        this.printMatrix(this.Mu);
+//////        System.out.println("no");
+
 }

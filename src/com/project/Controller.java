@@ -44,7 +44,7 @@ public class Controller {
 
 //		boolean visualRun = true;
         boolean visualRun = true;
-        if (visualRun) visualRun(Environment.SPIRAL, "res/generation30-best.txt");
+        if (visualRun) visualRun(Environment.SPIRAL, "res/all_time_best.txt");
         else trainingRun(controller, "res/generation30-all.txt");
 
         controller.stop();

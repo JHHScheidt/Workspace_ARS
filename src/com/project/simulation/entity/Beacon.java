@@ -23,8 +23,8 @@ public class Beacon {
 	}
 
 	public void update(Pose pose) {
-		this.distanceToVehicle = Math.sqrt(Math.pow(this.x - pose.x, 2) + Math.pow(this.y - pose.y, 2)) + Controller.nextGaussian(0);
-		this.angleToVehicle = ((Math.atan2(this.y - pose.y, this.x - pose.x) - pose.theta + MAX_RAD) + Controller.nextGaussian(0)) % MAX_RAD;
+		this.distanceToVehicle = Math.sqrt(Math.pow(this.x - pose.x, 2) + Math.pow(this.y - pose.y, 2)) + Controller.nextGaussian(0.1);
+		this.angleToVehicle = ((Math.atan2(this.y - pose.y, this.x - pose.x) - pose.theta + MAX_RAD) + Controller.nextGaussian(0.08)) % MAX_RAD;
 	}
 
 	@Override

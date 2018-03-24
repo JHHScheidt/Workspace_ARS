@@ -157,7 +157,7 @@ public class Simulator implements Callable<Double> {
 
     private void updateVehicle(double delta) {
         double[] activations = this.vehicleNetwork.compute(this.vehicle.sensorValues);
-//        this.vehicle.setMotorInput(activations[0], activations[1]);
+        this.vehicle.setMotorInput(activations[0], activations[1]);
 
         double newX, newY, newTheta;
         if (this.vehicle.speedLeft == this.vehicle.speedRight) { //just translate car forward in current direction
