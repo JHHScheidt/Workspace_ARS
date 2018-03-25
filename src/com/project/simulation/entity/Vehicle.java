@@ -118,12 +118,15 @@ public class Vehicle {
         xObservation /= combinations;
         yObservation /= combinations;
 //        this.pose.theta = (Math.atan2(prevY - pose.y, prevX - pose.x) + Math.PI) % Beacon.MAX_RAD;
-        double thetaObservation = 0;
+        double thetaObservation;
+        double thetaX = 0, thetaY = 0;
         for (Beacon beacon : this.visibleBeacons) {
             double angleWithXAxis = (2 * Math.PI + Math.atan2(beacon.y - yObservation, beacon.x - xObservation)) % (Math.PI * 2);
-            thetaObservation += ((angleWithXAxis - beacon.angleToVehicle) + Math.PI * 2) % (Math.PI * 2);
+            thetaX += Math.cos(angleWithXAxis - beacon.angleToVehicle);
+            thetaY += Math.sin(angleWithXAxis - beacon.angleToVehicle);
+//            thetaObservation += ((angleWithXAxis - beacon.angleToVehicle) + Math.PI * 2) % (Math.PI * 2);
         }
-        thetaObservation /= this.visibleBeacons.size();
+        thetaObservation = (2 * Math.PI + Math.atan2(thetaY, thetaX)) % (Math.PI * 2);
 
         Matrix zt = new Matrix(new double[][]{
                 {xObservation},
@@ -172,8 +175,10 @@ public class Vehicle {
 
         double K = k31 * invD;
 
-        this.pose.x = K * (c12y - c23y) + x2;
-        this.pose.y = K * (c23x - c12x) + y2;
+//        this.pose.x = K * (c12y - c23y) + x2;
+//        this.pose.y = K * (c23x - c12x) + y2;
+        this.pose.x = Simulator.actualVehiclePose.x + Controller.nextGaussian(0.2);
+        this.pose.y = Simulator.actualVehiclePose.y + Controller.nextGaussian(0.2);
     }
 
     private double bound(double value) {
@@ -187,8 +192,8 @@ public class Vehicle {
     }
 
     public void setMotorInput(double left, double right) {
-        this.speedLeft = (left * this.maxSpeed) + Controller.nextGaussian(0.1);
-        this.speedRight = (right * this.maxSpeed) + Controller.nextGaussian(0.1);
+        this.speedLeft = (left * this.maxSpeed) + Controller.nextGaussian(0);
+        this.speedRight = (right * this.maxSpeed) + Controller.nextGaussian(0);
     }
 
     private void printMatrix(Matrix matrix) {
