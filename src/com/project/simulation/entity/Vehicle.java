@@ -175,10 +175,10 @@ public class Vehicle {
 
         double K = k31 * invD;
 
-//        this.pose.x = K * (c12y - c23y) + x2;
-//        this.pose.y = K * (c23x - c12x) + y2;
-        this.pose.x = Simulator.actualVehiclePose.x + Controller.nextGaussian(0.2);
-        this.pose.y = Simulator.actualVehiclePose.y + Controller.nextGaussian(0.2);
+        this.pose.x = K * (c12y - c23y) + x2;
+        this.pose.y = K * (c23x - c12x) + y2;
+//        this.pose.x = Simulator.actualVehiclePose.x + Controller.nextGaussian(0.2);
+//        this.pose.y = Simulator.actualVehiclePose.y + Controller.nextGaussian(0.2);
     }
 
     private double bound(double value) {
