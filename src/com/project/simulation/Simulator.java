@@ -30,7 +30,7 @@ public class Simulator implements Callable<Double> {
 
     private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
-    private Pose actualVehiclePose;
+    public static Pose actualVehiclePose;
     public Queue<Pose> pastVehiclePositions;
 
 
@@ -122,7 +122,6 @@ public class Simulator implements Callable<Double> {
         // find beacons in vision of
         this.vehicle.visibleBeacons = this.environment.getVisibleBeacons(this.actualVehiclePose.x, this.actualVehiclePose.y);
         for (Beacon beacon : this.vehicle.visibleBeacons) beacon.update(this.actualVehiclePose);
-        this.vehicle.pose.theta = this.actualVehiclePose.theta;
         this.vehicle.predictPosition(delta);
 
         // store vehicle previous position
@@ -177,6 +176,7 @@ public class Simulator implements Callable<Double> {
             newX = Math.cos(omega * delta) * (this.actualVehiclePose.x - ICCX) - (Math.sin(omega * delta) * (this.actualVehiclePose.y - ICCY)) + ICCX;
             newY = Math.sin(omega * delta) * (this.actualVehiclePose.x - ICCX) + (Math.cos(omega * delta) * (this.actualVehiclePose.y - ICCY)) + ICCY;
             newTheta = this.actualVehiclePose.theta + omega * delta;
+            newTheta += Math.PI * 2;
             newTheta %= Math.PI * 2;
         }
 

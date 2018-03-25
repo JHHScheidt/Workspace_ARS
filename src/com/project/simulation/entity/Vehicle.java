@@ -3,6 +3,7 @@ package com.project.simulation.entity;
 import Jama.Matrix;
 import com.project.Controller;
 import com.project.simulation.Pose;
+import com.project.simulation.Simulator;
 
 import java.util.ArrayList;
 
@@ -60,8 +61,8 @@ public class Vehicle {
                 {0, cSquared, 0},
                 {0, 0, cSquared}});
         this.Q = new Matrix(new double[][]{
-                {cSquared, 0, 0},
-                {0, cSquared, 0},
+                {0, 0, 0},
+                {0, 0, 0},
                 {0, 0, cSquared}});
         this.A = Matrix.identity(3, 3);
         this.C = Matrix.identity(3, 3);
@@ -75,19 +76,11 @@ public class Vehicle {
     }
 
     public void predictPosition(double dt) {
-
-
         // assumes you can see at least 3 beacons
 
         double prevX = this.pose.x;
         double prevY = this.pose.y;
         double prevTheta = this.pose.theta;
-        this.triangulate(this.visibleBeacons.get(0).angleToVehicle, this.visibleBeacons.get(1).angleToVehicle, this.visibleBeacons.get(2).angleToVehicle, this.visibleBeacons.get(0).x, this.visibleBeacons.get(0).y, this.visibleBeacons.get(1).x, this.visibleBeacons.get(1).y, this.visibleBeacons.get(2).x, this.visibleBeacons.get(2).y);
-//        this.pose.x += Controller.nextGaussian(0.25);
-//        this.pose.y += Controller.nextGaussian(0.25);
-//        this.pose.theta += Controller.nextGaussian(0.1);
-
-//        this.pose.theta = (Math.atan2(prevY - pose.y, prevX - pose.x) + Math.PI) % Beacon.MAX_RAD;
 
         // kalman shit
         double deltaTheta = (this.pose.theta - prevTheta);
@@ -97,10 +90,6 @@ public class Vehicle {
         double velocity = Math.sqrt(Math.pow(this.pose.y - prevY, 2) + Math.pow(this.pose.x - prevX, 2)) / dt;
         double angularVelocity = deltaTheta / dt;
 
-        Matrix zt = new Matrix(new double[][]{
-                {this.pose.x},
-                {this.pose.y},
-                {this.pose.theta}});
         Matrix ut = new Matrix(new double[][] {
                 {velocity},
                 {angularVelocity}});
@@ -109,17 +98,46 @@ public class Vehicle {
         this.B.set(1, 0, dt * Math.sin(this.pose.theta));
         this.B.set(2, 1, dt);
 
+        // prediction
         Matrix MuPredict = this.A.times(this.Mu).plus(this.B.times(ut));
         Matrix SigmaPredict = this.A.times(this.Sigma).times(this.A.transpose()).plus(this.R);
+
+        // correction
+        int combinations = 0;
+        double xObservation = 0, yObservation = 0;
+        for (int i = 0; i < this.visibleBeacons.size(); i++) {
+            for (int j = i + 1; j < this.visibleBeacons.size(); j++) {
+                for (int k = j + 1; k < this.visibleBeacons.size(); k++) {
+                    combinations++;
+                    this.triangulate(this.visibleBeacons.get(i).angleToVehicle, this.visibleBeacons.get(j).angleToVehicle, this.visibleBeacons.get(k).angleToVehicle, this.visibleBeacons.get(i).x, this.visibleBeacons.get(i).y, this.visibleBeacons.get(j).x, this.visibleBeacons.get(j).y, this.visibleBeacons.get(k).x, this.visibleBeacons.get(k).y);
+                    xObservation += pose.x;
+                    yObservation += pose.y;
+                }
+            }
+        }
+        xObservation /= combinations;
+        yObservation /= combinations;
+//        this.pose.theta = (Math.atan2(prevY - pose.y, prevX - pose.x) + Math.PI) % Beacon.MAX_RAD;
+        double thetaObservation = 0;
+        for (Beacon beacon : this.visibleBeacons) {
+            double angleWithXAxis = (2 * Math.PI + Math.atan2(beacon.y - yObservation, beacon.x - xObservation)) % (Math.PI * 2);
+            thetaObservation += ((angleWithXAxis - beacon.angleToVehicle) + Math.PI * 2) % (Math.PI * 2);
+        }
+        thetaObservation /= this.visibleBeacons.size();
+
+        Matrix zt = new Matrix(new double[][]{
+                {xObservation},
+                {yObservation},
+                {thetaObservation}});
 
         Matrix Kt = SigmaPredict.times(this.C.transpose()).times(this.C.times(SigmaPredict).times(this.C.transpose()).plus(this.Q).inverse());
         this.Mu = MuPredict.plus(Kt.times(zt.minus(this.C.times(MuPredict))));
         this.Sigma = I.minus(Kt.times(this.C)).times(SigmaPredict);
-
-        System.out.println(this.pose.x + " " + this.Mu.get(0, 0));
-        System.out.println(this.pose.y + " " + this.Mu.get(1, 0));
-        System.out.println(this.pose.theta + " " + this.Mu.get(2, 0));
-        System.out.println();
+//
+//        System.out.println(this.pose.x + " " + this.Mu.get(0, 0));
+//        System.out.println(this.pose.y + " " + this.Mu.get(1, 0));
+//        System.out.println(this.pose.theta + " " + this.Mu.get(2, 0));
+//        System.out.println();
 
         this.pose.x = this.Mu.get(0, 0);
         this.pose.y = this.Mu.get(1, 0);
