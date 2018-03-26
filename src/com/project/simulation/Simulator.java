@@ -30,10 +30,11 @@ public class Simulator implements Callable<Double> {
 
     private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
-    public static Pose actualVehiclePose;
-    public Queue<Pose> pastVehiclePositions;
+    private Pose actualVehiclePose;
 
+    private Queue<Pose> pastVehiclePositions;
 
+    // used for fitness
     private int previousX, previousY;
 
     public int id;
@@ -253,5 +254,9 @@ public class Simulator implements Callable<Double> {
 
     public Environment getEnvironment() {
         return this.environment;
+    }
+
+    public Queue<Pose> getPastVehiclePositions() {
+        return this.pastVehiclePositions;
     }
 }

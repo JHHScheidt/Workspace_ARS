@@ -40,7 +40,7 @@ public class SimulatorDisplay extends JPanel {
         Pose vehiclePose = this.simulator.getVehiclePose();
         // render previous vehicle positions
 
-        for (Iterator<Pose> it = this.simulator.pastVehiclePositions.iterator(); it.hasNext(); ) {
+        for (Iterator<Pose> it = this.simulator.getPastVehiclePositions().iterator(); it.hasNext(); ) {
             Pose pose = it.next();
 
             g2.setColor(this.transparantFill);

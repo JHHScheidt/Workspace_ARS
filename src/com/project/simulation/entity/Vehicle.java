@@ -61,8 +61,8 @@ public class Vehicle {
                 {0, cSquared, 0},
                 {0, 0, cSquared}});
         this.Q = new Matrix(new double[][]{
-                {0, 0, 0},
-                {0, 0, 0},
+                {cSquared, 0, 0},
+                {0, cSquared, 0},
                 {0, 0, cSquared}});
         this.A = Matrix.identity(3, 3);
         this.C = Matrix.identity(3, 3);
