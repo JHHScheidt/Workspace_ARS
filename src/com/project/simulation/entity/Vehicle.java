@@ -8,14 +8,14 @@ import com.project.simulation.Simulator;
 import java.util.ArrayList;
 
 /**
- * @author Joshua, Simon
+ * @author Joshua, Simon, Rico
  */
 public class Vehicle {
 
     private static final double MAX_COT = 100000000;
 
     public double r; // distance between center of the car and the wheel, ie 1/2 distance between the wheels
-    public Pose pose;
+    public Pose pose; // the estimated pose of the vehicle
 
     public double speedLeft, speedRight; // m/s
 
@@ -67,8 +67,6 @@ public class Vehicle {
         this.A = Matrix.identity(3, 3);
         this.C = Matrix.identity(3, 3);
         this.I = Matrix.identity(3, 3);
-//        this.X = new Matrix(new double[][] {{this.pose.x},{this.pose.y}, {this.pose.theta}});
-//        this.E = new Matrix(new double[][] {{0.01, 0, 0}, {0, 0.01, 0}, {0, 0, 0.01}});
         this.B = new Matrix(new double[][]{
                 {0, 0},
                 {0, 0},
@@ -82,7 +80,6 @@ public class Vehicle {
         double prevY = this.pose.y;
         double prevTheta = this.pose.theta;
 
-        // kalman shit
         double deltaTheta = (this.pose.theta - prevTheta);
         if (deltaTheta > Math.PI) deltaTheta -= Math.PI * 2;
         else if (deltaTheta < -Math.PI) deltaTheta += Math.PI * 2;
@@ -117,14 +114,12 @@ public class Vehicle {
         }
         xObservation /= combinations;
         yObservation /= combinations;
-//        this.pose.theta = (Math.atan2(prevY - pose.y, prevX - pose.x) + Math.PI) % Beacon.MAX_RAD;
         double thetaObservation;
         double thetaX = 0, thetaY = 0;
         for (Beacon beacon : this.visibleBeacons) {
             double angleWithXAxis = (2 * Math.PI + Math.atan2(beacon.y - yObservation, beacon.x - xObservation)) % (Math.PI * 2);
             thetaX += Math.cos(angleWithXAxis - beacon.angleToVehicle);
             thetaY += Math.sin(angleWithXAxis - beacon.angleToVehicle);
-//            thetaObservation += ((angleWithXAxis - beacon.angleToVehicle) + Math.PI * 2) % (Math.PI * 2);
         }
         thetaObservation = (2 * Math.PI + Math.atan2(thetaY, thetaX)) % (Math.PI * 2);
 
@@ -136,11 +131,6 @@ public class Vehicle {
         Matrix Kt = SigmaPredict.times(this.C.transpose()).times(this.C.times(SigmaPredict).times(this.C.transpose()).plus(this.Q).inverse());
         this.Mu = MuPredict.plus(Kt.times(zt.minus(this.C.times(MuPredict))));
         this.Sigma = I.minus(Kt.times(this.C)).times(SigmaPredict);
-//
-//        System.out.println(this.pose.x + " " + this.Mu.get(0, 0));
-//        System.out.println(this.pose.y + " " + this.Mu.get(1, 0));
-//        System.out.println(this.pose.theta + " " + this.Mu.get(2, 0));
-//        System.out.println();
 
         this.pose.x = this.Mu.get(0, 0);
         this.pose.y = this.Mu.get(1, 0);
@@ -177,8 +167,6 @@ public class Vehicle {
 
         this.pose.x = K * (c12y - c23y) + x2;
         this.pose.y = K * (c23x - c12x) + y2;
-//        this.pose.x = Simulator.actualVehiclePose.x + Controller.nextGaussian(0.2);
-//        this.pose.y = Simulator.actualVehiclePose.y + Controller.nextGaussian(0.2);
     }
 
     private double bound(double value) {

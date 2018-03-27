@@ -30,7 +30,7 @@ public class Simulator implements Callable<Double> {
 
     private NeuralNetwork vehicleNetwork;
     private Vehicle vehicle; // the car
-    private Pose actualVehiclePose;
+    private Pose actualVehiclePose; // the actual pose of the vehiclee
 
     private Queue<Pose> pastVehiclePositions;
 
